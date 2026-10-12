@@ -1082,77 +1082,6 @@ body.kb #tabbar{transform:translateY(130%)}
   .xc-bars .b,.xc-dots i,.spop .ck{animation-duration:.01s}
 }
 
-/* ============ v10: premium ============ */
-.pro-badge{display:inline-flex;align-items:center;gap:0.227rem;font-size:0.756rem;font-weight:900;letter-spacing:0.045rem;
-  color:#0d0d0d;background:linear-gradient(135deg,#ffe45c,#ffb700);padding:0.227rem 0.605rem;border-radius:7.488rem;
-  vertical-align:0.151rem;margin-left:0.454rem;box-shadow:0 0.151rem 0.605rem rgba(255,183,0,.4)}
-.prem-hero{text-align:center;padding:1.967rem 0.454rem 0.605rem}
-.prem-crown{width:5.749rem;height:5.749rem;margin:0 auto 0.756rem;border-radius:1.967rem;display:flex;align-items:center;justify-content:center;
-  color:#0d0d0d;background:linear-gradient(135deg,#ffe45c,#aefe02);
-  box-shadow:0 0.605rem 2.269rem rgba(255,200,0,.35)}
-.prem-hero h2{font-size:1.967rem;letter-spacing:-0.03rem}
-.prem-hero p{color:var(--ink2);font-weight:600;margin:0.303rem 0 0.756rem}
-.prem-until{margin-top:0.605rem;font-size:0.983rem;font-weight:700;color:var(--ink2)}
-.prem-note{margin-top:0.605rem;font-size:0.983rem;font-weight:600;color:var(--green-deep);
-  background:color-mix(in srgb,var(--green) 12%,transparent);border-radius:0.908rem;padding:0.756rem 1.059rem}
-.plan-cards{display:grid;grid-template-columns:1fr 1fr;gap:0.908rem;margin:2.118rem 0 1.362rem}
-.plan-card{position:relative;border-radius:1.513rem;padding:1.362rem 1.059rem;border:0.113rem solid var(--card-brd);
-  background:var(--card);display:flex;flex-direction:column;gap:0.151rem;align-items:flex-start;text-align:left;color:var(--ink)}
-.plan-card.best{border-color:var(--lime);background:color-mix(in srgb,var(--lime) 8%,var(--card))}
-.plan-flag{position:absolute;top:-0.832rem;left:0.908rem;font-size:0.756rem;font-weight:800;color:#0d0d0d;
-  background:var(--lime);padding:0.227rem 0.756rem;border-radius:7.488rem;white-space:nowrap}
-.plan-card b{font-size:1.135rem}
-.plan-price{font-size:1.588rem;font-weight:900;letter-spacing:-0.03rem;margin-top:0.303rem}
-.plan-card small{color:var(--ink2);font-weight:600}
-.plan-cta{margin-top:0.756rem;font-size:0.983rem;font-weight:800;color:#0d0d0d;background:var(--lime);
-  padding:0.681rem 0;border-radius:0.908rem;width:100%;text-align:center}
-.prem-h{font-size:1.135rem;font-weight:800;margin:1.362rem 0 0.756rem}
-.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.756rem}
-.feat{display:flex;align-items:center;gap:0.832rem;padding:1.135rem 0.983rem;font-size:1.021rem;font-weight:700;line-height:1.45}
-.f-ico{width:2.723rem;height:2.723rem;flex:none;border-radius:0.908rem;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,var(--green),var(--green-deep));color:#fff}
-.buy-plan{display:flex;justify-content:space-between;align-items:center;background:var(--surface);
-  border-radius:1.059rem;padding:0.983rem 1.21rem;margin-bottom:1.059rem;font-size:1.059rem}
-.buy-step{font-size:1.021rem;font-weight:600;color:var(--ink2);line-height:1.6;margin:0.908rem 0 0.605rem}
-.kbz-box{display:flex;align-items:center;justify-content:space-between;background:#0d0d0d;color:#fff;
-  border-radius:1.21rem;padding:1.21rem 1.362rem;margin-bottom:0.303rem}
-.kbz-box b{font-size:1.588rem;letter-spacing:0.076rem}
-.shot-up{display:block;border:0.151rem dashed var(--line);border-radius:1.21rem;padding:1.664rem;text-align:center;
-  color:var(--ink2);font-weight:700;margin:0.454rem 0 0.303rem;cursor:pointer}
-.shot-up small{display:block;margin-top:0.454rem;font-size:0.983rem}
-#shot-prev{max-width:100%;max-height:16.641rem;border-radius:0.908rem}
-.btn-lime.sm{width:auto;padding:0.756rem 1.513rem;font-size:1.059rem}
-.btn-lime.big{margin-top:1.059rem}
-/* wallet-style success animation */
-.payanim{position:fixed;inset:0;z-index:999;background:#050505;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:1.664rem;opacity:0;pointer-events:none;transition:opacity .45s}
-.payanim.on{opacity:1;pointer-events:auto}
-.pa-orb{width:12.859rem;height:12.859rem;position:relative}
-.payanim.on .pa-orb{animation:paBloom 1.5s var(--ease) forwards}
-.pa-core{position:absolute;inset:0;border-radius:50%;
-  background:radial-gradient(circle at 36% 32%,#f2ffb8 0%,#aefe02 32%,#34d968 58%,rgba(52,217,104,0) 74%);
-  filter:blur(0.227rem)}
-.pa-orb::after{content:"";position:absolute;inset:-3.479rem;border-radius:50%;
-  background:radial-gradient(circle,rgba(174,254,2,.4),rgba(52,217,104,.12) 45%,transparent 70%);
-  filter:blur(1.815rem)}
-.payanim.on .pa-orb::after{animation:paHalo 1.5s ease forwards}
-@keyframes paBloom{0%{transform:scale(.25);opacity:0}45%{transform:scale(1.28);opacity:1}75%{transform:scale(.96)}100%{transform:scale(1);opacity:1}}
-@keyframes paHalo{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.15);opacity:1}100%{transform:scale(1);opacity:.85}}
-.pa-check{width:5.597rem;height:5.597rem;margin-top:-0.605rem}
-.payanim.on .pa-check{animation:paPop .7s .9s var(--ease-spring) backwards}
-.pa-check svg{width:100%;height:100%;fill:none;stroke:#aefe02;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round}
-.pa-check circle{stroke:rgba(174,254,2,.35)}
-.pa-check path{stroke-dasharray:40;stroke-dashoffset:40}
-.payanim.on .pa-check path{animation:paDraw .5s 1.15s ease forwards}
-@keyframes paDraw{to{stroke-dashoffset:0}}
-@keyframes paPop{0%{transform:scale(0)}100%{transform:scale(1)}}
-.pa-text{text-align:center;opacity:0;transform:translateY(1.059rem)}
-.payanim.on .pa-text{animation:paRise .6s 1.25s var(--ease) forwards}
-.pa-text b{display:block;font-size:1.74rem;color:#fff;letter-spacing:-0.023rem}
-.pa-text small{display:block;color:#9a9aa0;font-size:1.059rem;margin-top:0.605rem;max-width:21.179rem;line-height:1.55}
-@keyframes paRise{to{opacity:1;transform:none}}
-.payanim .btn-lime{width:auto;padding:0.983rem 3.328rem;opacity:0}
-.payanim.on .btn-lime{animation:paRise .5s 1.6s var(--ease) forwards}
 /* scoreboard */
 .board-note{font-size:0.908rem;font-weight:700;color:var(--ink2);margin:-0.454rem 0 0.908rem}
 .board-row{display:flex;align-items:center;gap:0.908rem;padding:0.983rem 1.059rem;border-radius:1.21rem;
@@ -1170,22 +1099,3 @@ body.kb #tabbar{transform:translateY(130%)}
 .pp{display:inline-flex;align-items:center;gap:0.378rem;font-size:0.946rem;font-weight:700;padding:0.605rem 0.983rem;border-radius:7.488rem;
   background:var(--surface);border:0.076rem solid var(--card-brd);color:var(--ink2)}
 .pp.on{background:color-mix(in srgb,var(--lime) 18%,transparent);border-color:var(--lime);color:var(--ink)}
-.pp.lock{opacity:.75}
-.pp .pro-badge{margin-left:0}
-/* soft premium upsell inside the coach thread (never a blocking purchase modal) */
-.upsell-card b{display:block;font-size:1rem;margin-bottom:0.302rem;letter-spacing:-.01em}
-.upsell-card p{font-size:0.908rem;color:var(--ink2);line-height:1.55;margin-bottom:0.832rem;font-weight:500}
-.upsell-row{display:flex;align-items:center;gap:1.059rem}
-/* devices */
-.hr-live{font-size:0.908rem;font-weight:800;color:var(--green-deep);background:color-mix(in srgb,var(--green) 14%,transparent);
-  padding:0.378rem 0.908rem;border-radius:7.488rem}
-.proplan{display:flex;align-items:center;justify-content:space-between;gap:1.059rem;padding:1.286rem 1.21rem;margin-bottom:0.756rem}
-.proplan-tx{flex:1;min-width:0}
-.proplan-tx b{display:block;font-size:1.135rem;margin-bottom:0.378rem;letter-spacing:-0.015rem}
-.proplan-tx small{color:var(--ink2);font-weight:600;font-size:0.983rem;line-height:1.55;display:block}
-.proplan .btn-lime{flex:none;white-space:nowrap}
-.dev-row{display:flex;align-items:center;gap:0.983rem;width:100%;padding:1.135rem 1.21rem;margin-bottom:0.303rem;
-  color:var(--ink);text-align:left;font-size:1.097rem;font-weight:700}
-.dev-tx{flex:1}
-.dev-row .chev{color:var(--ink2);font-size:1.513rem}
-html[lang="my"] .plan-card b,html[lang="my"] .prem-h{line-height:1.7}
