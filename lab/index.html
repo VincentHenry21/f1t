@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F1T · iPhone 18 Pro Max Lab</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:radial-gradient(1200px 800px at 50% 20%,#1c1f26,#0a0b0e 70%);
+    min-height:100vh;display:flex;gap:36px;align-items:center;justify-content:center;
+    font-family:-apple-system,Inter,system-ui,sans-serif;color:#e8e8e8;padding:32px;flex-wrap:wrap}
+  .lab-title{position:fixed;top:18px;left:24px;font-size:13px;font-weight:700;letter-spacing:.4px;color:#9a9aa0}
+  .lab-title b{color:#aefe02}
+  /* ---------- device ---------- */
+  .device{position:relative;width:478px;height:1004px;flex:none;
+    background:linear-gradient(145deg,#3a3d44,#151619 30%,#2c2e34 60%,#0e0f12);
+    border-radius:78px;padding:13px;
+    box-shadow:0 40px 100px rgba(0,0,0,.6),inset 0 1px 1px rgba(255,255,255,.35),inset 0 -1px 1px rgba(0,0,0,.6)}
+  .screen{position:relative;width:452px;height:978px;border-radius:65px;overflow:hidden;background:#000}
+  .screen iframe{width:440px;height:956px;border:0;display:block;margin:11px 6px;background:#000;border-radius:54px}
+  /* dynamic island */
+  .island{position:absolute;top:23px;left:50%;transform:translateX(-50%);width:112px;height:32px;
+    background:#000;border-radius:20px;z-index:30;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+  .island::after{content:"";position:absolute;right:14px;top:50%;transform:translateY(-50%);
+    width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#1e2a3a,#05070c 70%)}
+  /* status bar */
+  .statusbar{position:absolute;top:11px;left:6px;width:440px;height:44px;z-index:20;pointer-events:none;
+    display:flex;align-items:center;justify-content:space-between;padding:8px 30px 0;color:#fff;
+    font-size:15px;font-weight:600}
+  .statusbar.light{color:#000}
+  .sb-icons{display:flex;align-items:center;gap:7px}
+  /* home indicator */
+  .homebar{position:absolute;bottom:19px;left:50%;transform:translateX(-50%);width:134px;height:5px;
+    border-radius:3px;background:rgba(255,255,255,.92);z-index:20;pointer-events:none}
+  .homebar.light{background:rgba(0,0,0,.85)}
+  /* side buttons */
+  .btn{position:absolute;background:linear-gradient(90deg,#43464d,#1a1b1f);border-radius:3px}
+  .btn.action{left:-3px;top:200px;width:4px;height:32px}
+  .btn.volup{left:-3px;top:250px;width:4px;height:58px}
+  .btn.voldn{left:-3px;top:316px;width:4px;height:58px}
+  .btn.power{right:-3px;top:270px;width:4px;height:92px}
+  /* ---------- control panel ---------- */
+  .panel{width:340px;flex:none;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+    border-radius:20px;padding:20px;backdrop-filter:blur(20px);align-self:flex-start;margin-top:40px}
+  .panel h2{font-size:15px;margin-bottom:4px}
+  .panel p{font-size:12px;color:#9a9aa0;margin-bottom:14px;line-height:1.5}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .pbtn{background:rgba(174,254,2,.12);border:1px solid rgba(174,254,2,.4);color:#aefe02;
+    padding:9px 14px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer}
+  .pbtn:hover{background:rgba(174,254,2,.22)}
+  .pbtn.ghost{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.15);color:#e8e8e8}
+  .checklist{list-style:none;font-size:12.5px}
+  .checklist li{padding:7px 0;border-top:1px solid rgba(255,255,255,.07);color:#c9c9ce;line-height:1.45}
+  .checklist li b{color:#aefe02}
+  #errlog{background:#0a0a0c;border:1px solid rgba(255,80,80,.3);border-radius:12px;padding:10px;
+    font-family:monospace;font-size:11px;color:#ff8a8a;max-height:150px;overflow-y:auto;margin-top:10px;white-space:pre-wrap}
+  #errlog:empty{display:none}
+  .ok{color:#aefe02;font-size:12px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="lab-title">F1T DEVICE LAB · <b>iPhone 18 Pro Max</b> · 440×956 pt · 3x</div>
+
+<div class="device" id="device">
+  <div class="btn action"></div><div class="btn volup"></div><div class="btn voldn"></div><div class="btn power"></div>
+  <div class="screen">
+    <iframe id="app" src="../" title="F1T"></iframe>
+    <div class="island"></div>
+    <div class="statusbar" id="statusbar">
+      <span id="clock">9:41</span>
+      <span class="sb-icons">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="4.5" width="3" height="7.5" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1" opacity=".4"/></svg>
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor"><path d="M8.5 9.6a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2zM8.5 5.4c1.8 0 3.4.7 4.6 1.9l-1.5 1.5A4.4 4.4 0 0 0 8.5 7.6c-1.2 0-2.3.5-3.1 1.2L3.9 7.3a6.4 6.4 0 0 1 4.6-1.9zM8.5 1c2.9 0 5.6 1.2 7.6 3.1l-1.5 1.5A8.6 8.6 0 0 0 8.5 3.2c-2.4 0-4.5.9-6.1 2.4L.9 4.1A10.6 10.6 0 0 1 8.5 1z" transform="translate(0,-1)"/></svg>
+        <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x="0.5" y="0.5" width="21" height="12" rx="3.5" stroke="currentColor" opacity=".5"/><rect x="2.5" y="2.5" width="15" height="8" rx="2" fill="currentColor"/><path d="M24.5 4.5v4a2 2 0 0 0 0-4z" fill="currentColor" opacity=".5"/></svg>
+      </span>
+    </div>
+    <div class="homebar" id="homebar"></div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Test Controls</h2>
+  <p>Same-origin lab: the panel can read the app's console errors and drive its theme + storage.</p>
+  <div class="row">
+    <button class="pbtn" id="b-reload">Reload app</button>
+    <button class="pbtn ghost" id="b-dark">Dark</button>
+    <button class="pbtn ghost" id="b-light">Light</button>
+  </div>
+  <div class="row">
+    <button class="pbtn ghost" id="b-guest">Seed guest + profile</button>
+    <button class="pbtn ghost" id="b-wipe">Wipe app data</button>
+  </div>
+  <h2 style="margin-top:14px">Test Script</h2>
+  <ul class="checklist">
+    <li><b>1.</b> Boot: splash → onboarding or home, no console errors</li>
+    <li><b>2.</b> Home: score ring dial sweeps, no overlap with conditions card</li>
+    <li><b>3.</b> Tab bar: bubble slides + morphs between tabs (spring)</li>
+    <li><b>4.</b> Coach: orb breathes, chips scroll, input bar glass</li>
+    <li><b>5.</b> + sheet → Water: "Drink Water." recharge slider drags with glow</li>
+    <li><b>6.</b> + → Exercise: muscle map full-size on top, chips grid</li>
+    <li><b>7.</b> Settings → User Guide opens, Profile → Progress → stats</li>
+    <li><b>8.</b> Light mode: cards readable, glass visible, no washed text</li>
+    <li><b>9.</b> Voice overlay opens from mic (may not transcribe headless)</li>
+  </ul>
+  <div id="errlog"></div>
+  <div class="ok" id="okmsg"></div>
+</div>
+
+<script>
+  const frame = document.getElementById('app');
+  const errlog = document.getElementById('errlog');
+  const okmsg = document.getElementById('okmsg');
+  function logErr(m){ errlog.textContent += m + "\n"; }
+  frame.addEventListener('load', () => {
+    try{
+      const w = frame.contentWindow;
+      w.onerror = (m,s,l,c)=>{ logErr("ERR: "+m+" @"+(s||"").split("/").pop()+":"+l); };
+      // forward console.error
+      const ce = w.console.error.bind(w.console);
+      w.console.error = (...a)=>{ logErr("console.error: "+a.join(" ")); ce(...a); };
+      okmsg.textContent = "✓ lab hooked into app (errors will appear above)";
+    }catch(e){ logErr("hook failed: "+e.message); }
+  });
+  // live clock
+  function tick(){ const d=new Date();
+    document.getElementById('clock').textContent =
+      d.getHours()%12||12 + ":" + String(d.getMinutes()).padStart(2,"0");
+  }
+  // fix: compute properly
+  function tick2(){ const d=new Date(); let h=d.getHours()%12; if(h===0)h=12;
+    document.getElementById('clock').textContent = h+":"+String(d.getMinutes()).padStart(2,"0"); }
+  setInterval(tick2, 5000); tick2();
+  // adapt status bar / home indicator to app theme
+  setInterval(()=>{ try{
+      const th = frame.contentWindow.document.documentElement.dataset.theme;
+      const light = th === "light";
+      document.getElementById('statusbar').classList.toggle('light', light);
+      document.getElementById('homebar').classList.toggle('light', light);
+    }catch(e){} }, 1000);
+  document.getElementById('b-reload').onclick = ()=> frame.contentWindow.location.reload();
+  function setTheme(th){ try{
+      frame.contentWindow.localStorage.setItem('f1t_theme', th);
+      frame.contentWindow.location.reload();
+    }catch(e){ logErr(e.message); } }
+  document.getElementById('b-dark').onclick = ()=> setTheme('dark');
+  document.getElementById('b-light').onclick = ()=> setTheme('light');
+  document.getElementById('b-guest').onclick = ()=>{ try{
+      const w = frame.contentWindow;
+      w.localStorage.setItem('f1t_guest','1');
+      w.localStorage.setItem('f1t_profile', JSON.stringify({name:'Lab',age:18,height:183,weight:91,sex:'male',goal:'cut',targetKcal:2200,policyAccepted:true,lang:'en'}));
+      w.location.reload();
+    }catch(e){ logErr(e.message); } };
+  document.getElementById('b-wipe').onclick = ()=>{ try{
+      frame.contentWindow.localStorage.clear(); frame.contentWindow.location.reload();
+    }catch(e){ logErr(e.message); } };
+</script>
+</body>
+</html>
