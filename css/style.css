@@ -51,7 +51,8 @@ input,select{font-family:var(--font)}
 #app{position:relative;z-index:1;max-width:480px;margin:0 auto;min-height:100dvh}
 .view{display:none;min-height:100dvh}
 .view.active{display:block}
-.page{padding:calc(env(safe-area-inset-top,0px) + 18px) 18px calc(env(safe-area-inset-bottom,0px) + 120px)}
+.page{padding:calc(env(safe-area-inset-top,0px) + 18px) 18px calc(env(safe-area-inset-bottom,0px) + 120px);
+  max-width:540px;margin:0 auto;width:100%}
 
 /* flat cards (no glass) */
 .glass-card{
@@ -609,7 +610,7 @@ button.ds-day{font-family:var(--font);cursor:pointer}
 .cp-tx b{font-size:14px;font-weight:800}
 .cp-tx small{font-size:11px;color:var(--ink2);font-weight:600}
 .coach-orbzone{text-align:center;padding:10px 0 2px}
-.coach-orb{position:relative;width:148px;height:148px;margin:10px auto 6px}
+.coach-orb{position:relative;width:clamp(96px,36vw,148px);aspect-ratio:1;margin:10px auto 6px}
 .orb-glow{position:absolute;inset:-26px;border-radius:50%;pointer-events:none;
   background:radial-gradient(circle,rgba(174,254,2,.28),transparent 62%);filter:blur(8px);
   animation:orb-breathe 4.6s ease-in-out infinite}
@@ -629,9 +630,21 @@ button.ds-day{font-family:var(--font);cursor:pointer}
 .coach-orb.thinking .orb-glow{background:radial-gradient(circle,rgba(174,254,2,.5),transparent 62%)}
 .coach-hi{font-size:13px;font-weight:700;color:var(--ink2)}
 .coach-ask{font-size:23px;font-weight:800;letter-spacing:-.3px;margin-top:2px}
-.coach-wrap.chatting .coach-orb{width:62px;height:62px;margin:2px auto}
+.coach-wrap.chatting .coach-orb{width:62px;margin:2px auto}
 .coach-wrap.chatting .coach-hi,.coach-wrap.chatting .coach-ask{display:none}
 .coach-wrap.chatting .coach-orbzone{padding:2px 0}
+/* short screens (landscape phones, small devices): compact hero, no overlap */
+@media (max-height:560px){
+  .coach-orbzone{padding:2px 0}
+  .coach-orb{width:84px;margin:4px auto}
+  .coach-hi{display:none}
+  .coach-ask{font-size:18px}
+  .coach-top{display:none}
+  #coach-body{height:auto;min-height:0}
+  .score-dial{width:min(44vw,180px);margin:6px auto 12px}
+  .sr-center .score-num{font-size:44px}
+  .page-head h1{font-size:22px}
+}
 .chat-log{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:10px 2px;min-height:60px}
 .chat-chips{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;flex:none;scrollbar-width:none}
 .chat-chips::-webkit-scrollbar{display:none}
