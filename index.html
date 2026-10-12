@@ -1,51 +1,249 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0a0a0b">
-<meta name="mobile-web-app-capable" content="yes">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#ffd9b8">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="F1T">
-<link rel="manifest" href="./manifest.json">
-<link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/icon-192.png">
-<title>F1T · Track. Fuel. Transform.</title>
-<link rel="stylesheet" href="./css/tokens.css">
-<link rel="stylesheet" href="./css/base.css">
-<link rel="stylesheet" href="./css/components.css">
-<link rel="stylesheet" href="./css/screens.css">
-<style>
-@font-face{font-family:"F1TBrand";src:url("./assets/fonts/f1t-brand.woff2") format("woff2");font-weight:400 900;font-display:swap}
-</style>
+<title>F1T · Calorie Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="apple-touch-startup-image" href="assets/splash/splash-1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)">
+<link rel="apple-touch-startup-image" href="assets/splash/splash-1179x2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)">
+<link rel="apple-touch-startup-image" href="assets/splash/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)">
+<link rel="apple-touch-startup-image" href="assets/splash/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
+<link rel="apple-touch-startup-image" href="assets/splash/splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)">
+<link rel="apple-touch-startup-image" href="assets/splash/splash-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)">
+<link rel="apple-touch-startup-image" href="assets/splash/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)">
+<link rel="apple-touch-startup-image" href="assets/splash/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="assets/icons/icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Myanmar:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/welcome.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 </head>
 <body>
-<div id="ambient"></div>
-<div id="app">
-  <main id="screen"></main>
-  <nav id="tabbar" aria-label="Main navigation"></nav>
+<div id="bg" aria-hidden="true">
+  <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span>
 </div>
-<div id="sheet-root"></div>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="./js/i18n.js"></script>
-<script src="./js/i18n12.js"></script>
-<script src="./js/data.js"></script>
-<script src="./js/icons.js"></script>
-<script src="./js/store.js"></script>
-<script src="./js/firebase.js"></script>
-<script src="./js/ui.js"></script>
-<script src="./js/score.js"></script>
-<script src="./js/meals.js"></script>
-<script src="./js/health.js"></script>
-<script src="./js/stats.js"></script>
-<script src="./js/coach.js"></script>
-<script src="./js/workout.js"></script>
-<script src="./js/report.js"></script>
-<script src="./js/anatomy.js"></script>
-<script src="./js/auth.js"></script>
-<script src="./js/app.js"></script>
+
+<div id="app">
+
+  <!-- SPLASH -->
+  <section id="view-splash" class="view active">
+    <div class="splash-inner">
+      <img class="app-logo logo-splash logo-lime" src="assets/icons/mark-transparent.png" alt="F1T">
+      <img class="app-logo logo-splash logo-ink" src="assets/icons/mark-transparent-dark.png" alt="F1T">
+      <div class="logo-xl">F1T</div>
+      <div class="splash-tag" data-i18n="tagline">Track. Fuel. Transform.</div>
+      <div class="splash-loader"><span></span></div>
+    </div>
+  </section>
+
+  <!-- AUTH -->
+  <section id="view-auth" class="view">
+    <div class="auth-wrap">
+      <button id="auth-lang" class="lang-pill" type="button">မြန်မာ</button>
+      <img class="app-logo logo-auth logo-lime" src="assets/icons/mark-transparent.png" alt="F1T">
+      <img class="app-logo logo-auth logo-ink" src="assets/icons/mark-transparent-dark.png" alt="F1T">
+      <div class="logo-lg">F1T</div>
+      <div class="auth-sub" data-i18n="tagline">Track. Fuel. Transform.</div>
+      <div class="glass-card auth-card">
+        <div class="auth-tabs">
+          <button class="auth-tab active" data-mode="login" data-i18n="login">Log in</button>
+          <button class="auth-tab" data-mode="signup" data-i18n="signup">Sign up</button>
+        </div>
+        <div id="auth-name-row" class="field hidden">
+          <label data-i18n="name">Name</label>
+          <input id="auth-name" type="text" autocomplete="name" data-i18n-ph="namePh" placeholder="Your name">
+        </div>
+        <div class="field">
+          <label data-i18n="email">Email</label>
+          <input id="auth-email" type="email" autocomplete="email" placeholder="you@email.com">
+        </div>
+        <div class="field">
+          <label data-i18n="password">Password</label>
+          <input id="auth-pass" type="password" autocomplete="current-password" placeholder="••••••••">
+        </div>
+        <div id="auth-err" class="auth-err hidden"></div>
+        <button id="auth-go" class="btn-lime" data-i18n="login">Log in</button>
+        <div class="or"><span data-i18n="or">or</span></div>
+        <button id="auth-google" class="btn-glass" type="button">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M23.5 12.3c0-.9-.1-1.5-.3-2.3H12v4.3h6.5c-.1 1.1-.8 2.7-2.4 3.8l-.1.7 3.5 2.7.2.1c2.2-2 3.8-5.6 3.8-9.3z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.8-2.9c-1 .7-2.4 1.2-4.1 1.2-3.1 0-5.8-2.1-6.8-5l-.7.1-3.6 2.8v.7C2.9 21.5 7.1 24 12 24z"/><path fill="#FBBC05" d="M5.2 14.4c-.2-.7-.4-1.5-.4-2.4s.1-1.7.4-2.4l-.1-.7L1.5 5.9l-.2.1C.5 7.7 0 9.7 0 12s.5 4.3 1.3 6.1l3.9-3.7z"/><path fill="#EA4335" d="M12 4.7c1.8 0 3 .8 3.7 1.4l3.3-3.2C17.9 1.1 15.2 0 12 0 7.1 0 2.9 2.5 1.3 6.1l3.9 3c1-2.9 3.7-4.4 6.8-4.4z"/></svg>
+          <span data-i18n="continueGoogle">Continue with Google</span>
+        </button>
+        <button id="auth-guest" class="link-btn" type="button" data-i18n="continueGuest">Continue as guest</button>
+      </div>
+      <div class="empty-note profile-copy" data-i18n="copyright">© 2026 F1T. All rights reserved.</div>
+    </div>
+  </section>
+
+  <!-- ONBOARDING -->
+  <section id="view-onboarding" class="view">
+    <div class="ob-wrap">
+      <div class="ob-head">
+        <div class="logo-md">F1T</div>
+        <div class="ob-steps"><span class="on"></span><span></span><span></span></div>
+      </div>
+      <div id="ob-body"></div>
+    </div>
+  </section>
+
+  <!-- HOME -->
+  <main id="view-home" class="view">
+    <div class="page">
+      <header class="home-head">
+        <div class="who">
+          <div class="avatar" id="home-avatar">F</div>
+          <div>
+            <div class="hi" id="home-hi">Good morning!</div>
+            <div class="who-name" id="home-name">Friend</div>
+          </div>
+        </div>
+        <div class="head-ico">
+          <button class="ico-btn" id="home-cal" type="button" aria-label="calendar"></button>
+          <button class="ico-btn" id="home-bell" type="button" aria-label="notifications"><span class="dot"></span></button>
+        </div>
+      </header>
+      <div id="home-body"></div>
+    </div>
+  </main>
+
+  <!-- STATS -->
+  <main id="view-stats" class="view">
+    <div class="page">
+      <header class="page-head">
+        <button class="ico-btn back" data-goto="home" type="button" aria-label="back"></button>
+        <h1 data-i18n="stats">Statistics</h1>
+        <button class="ico-btn more" type="button" aria-label="more"></button>
+      </header>
+      <div id="stats-body"></div>
+    </div>
+  </main>
+
+  <!-- COACH -->
+  <main id="view-coach" class="view">
+    <div class="page">
+      <header class="page-head">
+        <h1 data-i18n="coach">Coach</h1>
+      </header>
+      <div id="coach-body"></div>
+    </div>
+  </main>
+
+  <!-- REWARDS -->
+  <main id="view-rewards" class="view">
+    <div class="page">
+      <header class="page-head">
+        <h1 data-i18n="rewards">Rewards</h1>
+      </header>
+      <div id="rewards-body"></div>
+    </div>
+  </main>
+
+  <!-- SETTINGS -->
+  <main id="view-settings" class="view">
+    <div class="page">
+      <header class="page-head">
+        <h1 data-i18n="settings">Settings</h1>
+      </header>
+      <div id="settings-body"></div>
+    </div>
+  </main>
+
+  <!-- PROFILE -->
+  <main id="view-profile" class="view">
+    <div class="page">
+      <header class="page-head">
+        <h1 data-i18n="profile">Profile</h1>
+      </header>
+      <div id="profile-body"></div>
+    </div>
+  </main>
+
+</div>
+
+<!-- TAB BAR -->
+<nav id="tabbar" class="hidden">
+  <span class="tab-bubble" id="tab-bubble"></span>
+  <button class="tab" data-goto="home" type="button"><span class="t-ico i-home"></span><em data-i18n="summary">Summary</em></button>
+  <button class="tab" data-goto="coach" type="button"><span class="t-ico i-chat"></span><em data-i18n="coach">Coach</em></button>
+  <button class="tab fab" id="tab-add" type="button" aria-label="add"><span class="t-ico i-plus"></span></button>
+  <button class="tab" data-goto="profile" type="button"><span class="t-ico i-user"></span><em data-i18n="profile">Profile</em></button>
+  <button class="tab" data-goto="settings" type="button"><span class="t-ico i-gear"></span><em data-i18n="settings">Settings</em></button>
+</nav>
+
+<!-- LOG SHEET -->
+<div id="sheet-backdrop" class="hidden"></div>
+<div id="sheet" class="hidden">
+  <div class="sheet-grip"></div>
+  <h2 id="sheet-title">Log it</h2>
+  <div class="sheet-grid" id="sheet-grid"></div>
+  <button class="btn-glass full" id="sheet-close" data-i18n="cancel">Cancel</button>
+</div>
+
+<div id="modal-root"></div>
+<div id="toast" class="hidden"></div>
+
+<!-- WELCOME: cinematic opening screen for logged-out cold starts -->
+<div id="welcome" aria-hidden="true">
+  <div class="wel-aurora"></div>
+  <div class="wel-grain"></div>
+  <div class="wel-body">
+    <img class="wel-mark" src="assets/icons/mark-transparent.png" alt="F1T">
+    <div class="wel-title" data-i18n="welTitle">Welcome to F1T</div>
+    <div class="wel-sub" data-i18n="welSub">Starting today, your AI coach plans your training and nutrition daily.</div>
+  </div>
+  <div class="wel-cta">
+    <button class="wel-btn" id="wel-start" type="button" data-i18n="getStarted">Get Started</button>
+    <div class="wel-login"><span data-i18n="haveAcct">Already have an account?</span> <button id="wel-login" type="button" data-i18n="login">Log in</button></div>
+    <div class="wel-terms" data-i18n="welAgree">By tapping Get Started, I agree with the Terms of Service and Privacy Policy.</div>
+  </div>
+</div>
+<script>
+/* welcome screen: shows once per session when boot lands on the auth view (logged out) */
+(function(){
+  var wel=document.getElementById("welcome"); if(!wel) return;
+  var auth=document.getElementById("view-auth"); if(!auth) return;
+  function dismissed(){ try{return !!sessionStorage.getItem("f1t_welcomed");}catch(e){return false;} }
+  function remember(){ try{sessionStorage.setItem("f1t_welcomed","1");}catch(e){} }
+  document.getElementById("wel-start").addEventListener("click",function(){
+    remember(); wel.classList.remove("on"); wel.setAttribute("aria-hidden","true");
+    var s=auth.querySelector('[data-mode="signup"]'); if(s) s.click();
+  });
+  document.getElementById("wel-login").addEventListener("click",function(){
+    remember(); wel.classList.remove("on"); wel.setAttribute("aria-hidden","true");
+  });
+  if(dismissed()) return;
+  function maybe(){
+    if(dismissed()||wel.classList.contains("on")) return;
+    if(auth.classList.contains("active")){ wel.classList.add("on"); wel.setAttribute("aria-hidden","false"); }
+  }
+  new MutationObserver(maybe).observe(auth,{attributes:true,attributeFilter:["class"]});
+  maybe();
+})();
+</script>
+
+<script src="js/i18n.js"></script>
+<script src="js/data.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/analysis.js"></script>
+<script src="js/coach.js"></script>
+<script src="js/workout.js"></script>
+<script src="js/env.js"></script>
+<script src="js/firebase.js"></script>
+<script src="js/premium.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
