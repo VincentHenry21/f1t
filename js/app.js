@@ -682,8 +682,6 @@ function renderProfile(){
   const A=window.F1T_ANALYSIS, bmi=A?A.bmi(p.h,p.w):null;
   let st=0; try{ st=streak(); }catch(e){}
   $("#profile-body").innerHTML=`
-    <div class="glass-card logo-card"><img class="app-logo logo-profile logo-lime" src="assets/icons/mark-transparent.png" alt="F1T"><img class="app-logo logo-profile logo-ink" src="assets/icons/mark-transparent-dark.png" alt="F1T">
-      <div><div class="logo-md">F1T</div><small>${t("tagline")}</small></div></div>
     <div class="glass-card prof-card" id="prof-edit"><div class="avatar-wrap">${avatarHTML(p)}
       <button class="avatar-edit" id="av-edit" aria-label="customize">${ic("pencil",15)}</button></div>
       <div style="flex:1;min-width:0"><b>${p.name||t("guest")}</b>${(()=>{const parts=[p.accountName||who];if(p.birthday)parts.push(fmtBD(p.birthday));if(p.age!=null)parts.push(t("age")+" "+p.age);if(p.sign)parts.push(t(p.sign));return `<small>${parts.join(" · ")}</small>`;})()}</div>
