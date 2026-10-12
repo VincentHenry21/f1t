@@ -1583,8 +1583,9 @@ function moveBubble(){
   const place=()=>{
     const br=bar.getBoundingClientRect(), r=act.getBoundingClientRect();
     if(r.width===0) return;
-    b.style.left=Math.max(0,(r.left-br.left-6))+"px";
-    b.style.width=(r.width+12)+"px";
+    const z=act.offsetWidth?r.width/act.offsetWidth:1; /* body zoom compensation */
+    b.style.left=Math.max(0,(r.left-br.left)/z-6)+"px";
+    b.style.width=(r.width/z+12)+"px";
   };
   requestAnimationFrame(place);
   /* re-measure after the label finishes expanding so the bubble lands exactly */
@@ -1626,16 +1627,21 @@ function countUp(el, to, dur, format, from){
 /* expand a card into a detail sheet (FLIP zoom from its rect) */
 function expandCard(src, html){
   const r=src.getBoundingClientRect();
+  /* zoom-robust: measure everything in pre-zoom px (rects are post-zoom) */
+  const z=(src.offsetWidth&&r.width)?r.width/src.offsetWidth:1;
+  const rl=r.left/z, rt=r.top/z, rw=r.width/z, rh=r.height/z;
+  const vw=document.documentElement.getBoundingClientRect().width/z;
+  const vh=document.documentElement.getBoundingClientRect().height/z;
   const back=document.createElement("div"); back.className="xcard-back";
   const card=document.createElement("div"); card.className="xcard";
   card.innerHTML=`<button class="xcard-x" aria-label="close">×</button><div class="xcard-in">${html}</div>`;
-  const W=Math.min(480,window.innerWidth), H=window.innerHeight;
+  const W=Math.min(480,vw), H=vh;
   const tw=Math.min(W-24,452), th=Math.min(H*0.74,600);
   const tx=(W-tw)/2, ty=Math.max(56,(H-th)/2-30);
   card.style.left=tx+"px"; card.style.top=ty+"px";
   card.style.width=tw+"px"; card.style.height=th+"px";
-  const sx=Math.max(.05,r.width/tw), sy=Math.max(.05,r.height/th);
-  const dx=r.left-tx, dy=r.top-ty;
+  const sx=Math.max(.05,rw/tw), sy=Math.max(.05,rh/th);
+  const dx=rl-tx, dy=rt-ty;
   const from=`translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px) scale(${sx.toFixed(3)},${sy.toFixed(3)})`;
   card.style.transform=from;
   document.body.append(back,card);
