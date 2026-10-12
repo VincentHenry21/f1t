@@ -69,8 +69,20 @@ window.F1TFB = (() => {
     if (ok){ try{ const s = await db.collection("f1t_health").doc(dateKey).get(); if(s.exists) return s.data(); }catch(e){} }
     return null;
   }
+  /* ---- realtime ---- */
+  function subDay(dateKey, cb){
+    if(!ok||!uid) return ()=>{};
+    try{ return db.collection("f1t_days").doc(uid+"_"+dateKey).onSnapshot(s=>{ if(s.exists){ try{cb(s.data());}catch(e){} } },()=>{}); }
+    catch(e){ return ()=>{}; }
+  }
+  function subProfile(cb){
+    if(!ok||!uid) return ()=>{};
+    try{ return db.collection("f1t_users").doc(uid).onSnapshot(s=>{ if(s.exists){ try{cb(s.data());}catch(e){} } },()=>{}); }
+    catch(e){ return ()=>{}; }
+  }
 
   return { get ready(){return ok;}, get uid(){return uid;},
     onAuth, signUp, signIn, google, redirectResult, signOut,
-    saveProfile, loadProfile, pullProfile, loadDay, saveDay, pullDay, pullHealth, blankDay };
+    saveProfile, loadProfile, pullProfile, loadDay, saveDay, pullDay, pullHealth, blankDay,
+    subDay, subProfile };
 })();

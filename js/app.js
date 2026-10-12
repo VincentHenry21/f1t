@@ -62,6 +62,24 @@ async function loadAll(){
   if(rday && (!S.day || !S.day.kcal)){ S.day = Object.assign(window.F1TFB.blankDay(), rday); }
 }
 function saveDay(){ window.F1TFB.saveDay(S.dateKey, S.day); }
+/* realtime subscriptions */
+let unsubDay=null, unsubProfile=null;
+function stopLive(){ try{ if(unsubDay)unsubDay(); }catch(e){} try{ if(unsubProfile)unsubProfile(); }catch(e){} unsubDay=unsubProfile=null; }
+function resubDay(){
+  try{ if(unsubDay)unsubDay(); }catch(e){} unsubDay=null;
+  if(S.guest || !window.F1TFB.ready) return;
+  unsubDay=window.F1TFB.subDay(S.dateKey, d=>{
+    S.day=Object.assign(window.F1TFB.blankDay(), d);
+    if(["home","stats"].includes(S.view)) show(S.view);
+  });
+}
+function subscribeLive(){
+  stopLive();
+  if(S.guest || !window.F1TFB.ready) return;
+  unsubProfile=window.F1TFB.subProfile(p=>{ S.profile=Object.assign({},S.profile,p);
+    if(S.view==="profile") renderProfile(); });
+  resubDay();
+}
 function dayKeys(n){ // last n date keys ending today, oldest first
   const out=[]; const now=yangonNow();
   for(let i=n-1;i>=0;i--){ const d=new Date(now); d.setDate(d.getDate()-i); out.push(window.F1T_todayKey(d)); }
@@ -122,7 +140,7 @@ async function afterLogin(u){
 }
 async function enter(){
   if(!S.day){ await loadAll(); }
-  await loadHealth();
+  await loadHealth(); subscribeLive();
   if(!S.profile){ startOnboarding(); }
   else show("home");
 }
@@ -257,7 +275,7 @@ async function switchDate(key){
   S.day=window.F1TFB.loadDay(key);
   try{ const r=await window.F1TFB.pullDay(key); if(r&&(!S.day||!S.day.kcal)) S.day=Object.assign(window.F1TFB.blankDay(),r); }catch(e){}
   if(!S.day) S.day=window.F1TFB.blankDay();
-  refreshBell(); show(S.view);
+  refreshBell(); resubDay(); show(S.view);
 }
 function weekKeys(offset){ // 7 keys ending (today - 7*offset), oldest first
   const out=[]; const now=yangonNow();
@@ -315,7 +333,7 @@ function renderHome(){
   const ringC=2*Math.PI*44, ringP=Math.min(1,wk/7);
   const meals=["breakfast","lunch","dinner","snacks"];
   const mealKcal=m=> (d.meals[m]||[]).reduce((a,x)=>a+x.kcal,0);
-  const thumbs=m=> (d.meals[m]||[]).slice(0,3).map(x=>`<span>${ic(x.ic||"bowl",20)}</span>`).join("");
+  const thumbs=m=> (d.meals[m]||[]).slice(0,3).map(x=>x.photo?`<span><img src="${x.photo}" alt=""></span>`:`<span>${ic(x.ic||"bowl",20)}</span>`).join("");
   // date strip: week Mon..Sun, S.homeWeek=0 is current week
   const now=yangonNow(); const dow=(now.getDay()+6)%7;
   const mon=new Date(now); mon.setDate(mon.getDate()-dow-(S.homeWeek||0)*7);
@@ -390,6 +408,8 @@ function renderAnalysis(){
     return `<div class="macro-row"><span class="m-ico2">${ic(icon,16)}</span>
       <div class="m-mid"><div class="m-lab"><b>${label}</b><span>${t("ofTarget",{a:m.a,b:m.t})}</span></div>
       <div class="m-bar ${tone}"><i style="width:${pct}%"></i></div></div></div>`; };
+  const totG=an.macros.p.a+an.macros.c.a+an.macros.f.a;
+  const seg=(v,c)=>{ const p=totG?Math.round(v/totG*100):0; return p?`<i class="${c}" style="width:${p}%"></i>`:""; };
   const toneIcon={good:"check",warn:"bell",info:"zap",bad:"x"};
   const cards=an.insights.map(n=>`<div class="glass-card insight ${n.tone}">
     <span class="i-ico">${ic(n.icon,20)}</span>
@@ -401,6 +421,9 @@ function renderAnalysis(){
         ${mRow(t("protein"),an.macros.p,"meat")}
         ${mRow(t("carbs"),an.macros.c,"bread")}
         ${mRow(t("fat"),an.macros.f,"droplet")}
+      </div>
+      ${totG?`<div class="segbar">${seg(an.macros.p.a,"sp")}${seg(an.macros.c.a,"sc")}${seg(an.macros.f.a,"sf")}</div>
+      <div class="seg-leg"><span><span class="cl-dot" style="background:#f2542d"></span>${t("protein")}</span><span><span class="cl-dot" style="background:#ffc53d"></span>${t("carbs")}</span><span><span class="cl-dot" style="background:#7fc400"></span>${t("fat")}</span></div>`:""}
       </div></div>
     <div class="insights">${cards}</div>`;
 }
@@ -423,7 +446,19 @@ function renderStats(){
   const spark=exHist.map(v=>4+Math.round(v/exMax*36));
   $("#stats-body").innerHTML=`
     <div class="glass-card stat-hero"><div class="s-label">${t("calories")} · ${wkLabel}</div>
-      <div class="s-nums"><b>${fmt(d.kcal)}</b><small>${t("kcal")}</small><span class="tgt">${t("target")}: ${fmt(target)} ${t("kcal")}</span></div>
+      <div class="cal-ring-wrap">
+        <div class="cal-ring"><svg width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="52" fill="none" style="stroke:var(--track)" stroke-width="12"/>
+          <circle cx="60" cy="60" r="52" fill="none" stroke="url(#calg)" stroke-width="12" stroke-linecap="round"
+            stroke-dasharray="${2*Math.PI*52}" stroke-dashoffset="${(2*Math.PI*52)*(1-Math.min(1,d.kcal/target))}"/>
+          <defs><linearGradient id="calg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ffc53d"/><stop offset="1" stop-color="#f2542d"/></linearGradient></defs></svg>
+          <div class="rv"><b>${fmt(d.kcal)}</b><small>${t("eaten")}</small></div></div>
+        <div class="cal-legend">
+          <div class="cl-row"><span class="cl-dot" style="background:#f2542d"></span>${t("eaten")}<b>${fmt(d.kcal)}</b></div>
+          <div class="cl-row"><span class="cl-dot" style="background:#b8f04a"></span>${t("left")}<b>${fmt(Math.max(0,target-d.kcal))}</b></div>
+          <div class="cl-row"><span class="cl-dot" style="background:#7cc7ff"></span>${t("target")}<b>${fmt(target)}</b></div>
+        </div></div>
       <div class="bars">${bars}</div></div>
     ${renderAnalysis()}
     <div class="stat-grid">
@@ -510,7 +545,7 @@ function renderProfile(){
       <div class="ob-nav"><button class="btn-back" id="lg-cancel">${t("cancel")}</button>
       <button class="btn-lime" id="lg-ok">${t("logout")}</button></div></div></div>`;
     $("#lg-cancel").onclick=closeModal;
-    $("#lg-ok").onclick=async()=>{ await window.F1TFB.signOut(); store.del("f1t_guest"); location.reload(); };
+    $("#lg-ok").onclick=async()=>{ stopLive(); await window.F1TFB.signOut(); store.del("f1t_guest"); location.reload(); };
     $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
   };
 }
@@ -536,7 +571,7 @@ function closeModal(){ $("#modal-root").innerHTML=""; }
 
 /* ---------- SHEET + LOGGING ---------- */
 function openSheet(){
-  const opts=[["meal","utensils",t("logMeal")],["water","droplet",t("logWater")],["weight","scale",t("logWeight")],["steps","footprints",t("logSteps")],["exercise","activity",t("exercise")]];
+  const opts=[["meal","utensils",t("logMeal")],["water","droplet",t("logWater")],["weight","scale",t("logWeight")],["steps","footprints",t("logSteps")],["exercise","activity",t("exercise")],["camera","camera",t("takePhoto")]];
   $("#sheet-grid").innerHTML=opts.map(o=>`<button class="sheet-opt" data-k="${o[0]}"><span>${ic(o[1],26)}</span>${o[2]}</button>`).join("");
   $("#sheet").classList.remove("hidden"); $("#sheet-backdrop").classList.remove("hidden");
   $$("#sheet-grid .sheet-opt").forEach(b=>b.onclick=()=>{ closeSheet();
@@ -546,6 +581,7 @@ function openSheet(){
     if(k==="weight") openWeight();
     if(k==="steps") openSteps();
     if(k==="exercise") openExercise();
+    if(k==="camera") openCamera();
   });
 }
 function closeSheet(){ $("#sheet").classList.add("hidden"); $("#sheet-backdrop").classList.add("hidden"); }
@@ -607,6 +643,51 @@ function openSteps(){
     <div class="field"><label>${t("stepsToWalk")}</label><input id="st-v" type="number" inputmode="numeric" value="${S.day.steps||""}"></div>
     <button class="btn-lime" id="st-save">${t("save")}</button></div></div>`;
   $("#st-save").onclick=()=>{ S.day.steps=+$("#st-v").value||0; saveDay(); closeModal(); toast(t("logged")); renderHome(); };
+  $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
+}
+function downscalePhoto(file){
+  return new Promise(res=>{
+    try{
+      const img=new Image();
+      img.onload=()=>{
+        const max=640; let w=img.width,h=img.height;
+        if(w>max||h>max){ const r=Math.min(max/w,max/h); w=Math.round(w*r); h=Math.round(h*r); }
+        const c=document.createElement("canvas"); c.width=w||1; c.height=h||1;
+        c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+        try{ URL.revokeObjectURL(img.src); }catch(e){}
+        res(c.toDataURL("image/jpeg",0.72));
+      };
+      img.onerror=()=>res(null);
+      img.src=URL.createObjectURL(file);
+    }catch(e){ res(null); }
+  });
+}
+function openCamera(){
+  let meal="snacks", photo=null;
+  const meals=["breakfast","lunch","dinner","snacks"];
+  $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
+    <h2>${ic("camera",22)} ${t("takePhoto")}</h2>
+    <div class="cam-preview" id="cam-prev"><span>${ic("camera",40)}</span></div>
+    <input type="file" id="cam-file" accept="image/*" capture="environment" class="hidden">
+    <div class="seg-sm" style="margin-bottom:12px">${meals.map(m=>`<button data-m="${m}" class="${m===meal?"on":""}">${t(m)}</button>`).join("")}</div>
+    <div class="field"><label>${t("foodName")}</label><input id="cam-name" placeholder="${t("foodName")}"></div>
+    <div class="qty-row"><input id="cam-kcal" type="number" inputmode="numeric" placeholder="${t("calories")} (${t("kcal")})">
+      <button class="btn-lime" id="cam-save" style="width:auto;padding:14px 26px">${t("add")}</button></div>
+    <button class="btn-glass full" id="cam-snap">${t("takePhoto")}</button></div></div>`;
+  $$("#modal-root .seg-sm button").forEach(b=>b.onclick=()=>{ meal=b.dataset.m;
+    $$("#modal-root .seg-sm button").forEach(x=>x.classList.toggle("on",x===b)); });
+  $("#cam-snap").onclick=()=>$("#cam-file").click();
+  $("#cam-file").onchange=async e=>{
+    const f=e.target.files&&e.target.files[0]; if(!f) return;
+    const url=await downscalePhoto(f);
+    if(url){ photo=url; $("#cam-prev").innerHTML=`<img src="${url}" alt="">`; $("#cam-snap").textContent=t("retake"); }
+  };
+  $("#cam-save").onclick=()=>{
+    const n=$("#cam-name").value.trim()||t("takePhoto"), k=+$("#cam-kcal").value||0;
+    if(!k||!photo) return;
+    S.day.meals[meal].push({id:"p"+Date.now(),name:n,name_my:n,kcal:k,p:0,c:0,f:0,ic:"camera",photo,at:Date.now()});
+    S.day.kcal+=k; saveDay(); closeModal(); toast(t("logged")); renderHome();
+  };
   $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
 function openExercise(){
