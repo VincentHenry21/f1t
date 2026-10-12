@@ -146,7 +146,20 @@ async function doAuth(){
     if(authMode==="signup"){ u=await window.F1TFB.signUp(em,pw,$("#auth-name").value.trim()); }
     else{ u=await window.F1TFB.signIn(em,pw); }
     afterLogin(u);
-  }catch(e){ authErr(t("authFail")); }
+  }catch(e){ authErr(emailErrMsg(e)); }
+}
+/* specific, actionable auth errors instead of one generic message */
+function emailErrMsg(e){
+  const c=(e&&e.code)||"";
+  if(c==="auth/email-already-in-use") return t("errEmailInUse");
+  if(c==="auth/invalid-email") return t("errBadEmail");
+  if(c==="auth/weak-password") return t("errWeakPass");
+  if(c==="auth/wrong-password"||c==="auth/invalid-credential") return t("errBadCred");
+  if(c==="auth/user-not-found") return t("errNoUser");
+  if(c==="auth/operation-not-allowed") return t("errAuthOff");
+  if(c==="auth/network-request-failed") return t("errNetwork");
+  if(c==="auth/too-many-requests") return t("errTooMany");
+  return t("authFail");
 }
 async function afterLogin(u){
   S.user=u; S.guest=false; store.del("f1t_guest");
