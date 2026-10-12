@@ -50,6 +50,8 @@ function applyI18n(){
   $$("[data-i18n]").forEach(el=>{ el.textContent = t(el.dataset.i18n); });
   $$("[data-i18n-ph]").forEach(el=>{ el.placeholder = t(el.dataset.i18nPh); });
   $("#auth-lang").textContent = S.lang==="en" ? "မြန်မာ" : "English";
+  if(typeof sheetTitleKey!=="undefined" && !$("#sheet").classList.contains("hidden"))
+    $("#sheet-title").textContent=t(sheetTitleKey);
   if(["home","stats","rewards","profile"].includes(S.view)) show(S.view);
 }
 function fmt(n){ return n.toLocaleString("en-US"); }
@@ -539,6 +541,7 @@ function renderAnalysis(){
 }
 
 function renderStats(){
+  if(S.statsTab==="workouts"){ renderWorkoutStats(); return; }
   const p=S.profile||{}, target=p.targetKcal||2000;
   const keys=weekKeys(S.statsWeek||0); const dows=[t("mon"),t("tue"),t("wed"),t("thu"),t("fri"),t("sat"),t("sun")];
   const dowOf=k=>{ const dt=new Date(k+"T12:00:00+06:30"); return dows[(dt.getDay()+6)%7]; };
@@ -555,6 +558,7 @@ function renderStats(){
   const exMax=Math.max(1,...exHist);
   const spark=exHist.map(v=>4+Math.round(v/exMax*36));
   $("#stats-body").innerHTML=`
+    <div class="seg-sm wo-segmain"><button data-st="nutrition" class="on">${t("nutrition")}</button><button data-st="workouts">${t("workouts")}</button></div>
     <div class="glass-card stat-hero"><div class="s-label">${t("calories")} · ${wkLabel}</div>
       <div class="cal-ring-wrap">
         <div class="cal-ring"><svg width="120" height="120" viewBox="0 0 120 120">
@@ -590,6 +594,7 @@ function renderStats(){
   $("#st-bpm").onclick=openBpm;
   $("#st-weight").onclick=openWeight;
   $("#st-water").onclick=openWater;
+  $$("#stats-body .wo-segmain button").forEach(b=>b.onclick=()=>{ S.statsTab=b.dataset.st; renderStats(); });
 }
 
 /* ---------- REWARDS ---------- */
@@ -625,11 +630,11 @@ function renderProfile(){
   const A=window.F1T_ANALYSIS, bmi=A?A.bmi(p.h,p.w):null;
   let st=0; try{ st=streak(); }catch(e){}
   $("#profile-body").innerHTML=`
-    <div class="glass-card logo-card"><img class="app-logo logo-profile" src="assets/icons/icon-192.png" alt="F1T">
-      <div><div class="logo-md">F1<span>T</span></div><small>${t("tagline")}</small></div></div>
+    <div class="glass-card logo-card"><img class="app-logo logo-profile logo-lime" src="assets/icons/mark-transparent.png" alt="F1T"><img class="app-logo logo-profile logo-ink" src="assets/icons/mark-transparent-dark.png" alt="F1T">
+      <div><div class="logo-md">F1T</div><small>${t("tagline")}</small></div></div>
     <div class="glass-card prof-card" id="prof-edit"><div class="avatar-wrap">${avatarHTML(p)}
       <button class="avatar-edit" id="av-edit" aria-label="customize">${ic("pencil",15)}</button></div>
-      <div style="flex:1;min-width:0"><b>${p.name||t("guest")}</b><small>${p.accountName||who}</small>${(()=>{const parts=[];if(p.birthday)parts.push(fmtBD(p.birthday));if(p.age!=null)parts.push(t("age")+" "+p.age);if(p.sign)parts.push(t(p.sign));return parts.length?`<small>${parts.join(" · ")}</small>`:"";})()}</div>
+      <div style="flex:1;min-width:0"><b>${p.name||t("guest")}</b>${(()=>{const parts=[p.accountName||who];if(p.birthday)parts.push(fmtBD(p.birthday));if(p.age!=null)parts.push(t("age")+" "+p.age);if(p.sign)parts.push(t(p.sign));return `<small>${parts.join(" · ")}</small>`;})()}</div>
       <span class="chev">›</span></div>
     <div class="glass-card body-card">
       <div class="plan-row"><span>${t("bodyStatus")}</span><b>${bmi?bmi.value.toFixed(1)+" · "+t(BMI_CATKEY[bmi.cat]):"--"}</b></div>
@@ -709,8 +714,10 @@ function setLang(L){
   if(S.profile){ S.profile.lang=L; window.F1TFB.saveProfile(S.profile); }
   applyI18n();
 }
+let sheetTitleKey="logTitle";
 function openLangSheet(){
   const langs=[["en","English"],["my","မြန်မာ"],["th","ไทย"],["zh","中文"],["ja","日本語"]];
+  sheetTitleKey="language"; $("#sheet-title").textContent=t("language");
   $("#sheet-grid").innerHTML=langs.map(l=>`<button class="sheet-opt" data-lang="${l[0]}"><span style="font-size:22px;font-weight:800">${l[1].slice(0,2)}</span>${l[1]}${S.lang===l[0]?" ✓":""}</button>`).join("");
   $("#sheet").classList.remove("hidden"); $("#sheet-backdrop").classList.remove("hidden");
   $$("#sheet-grid [data-lang]").forEach(b=>b.onclick=()=>{ closeSheet(); setLang(b.dataset.lang); });
@@ -726,10 +733,16 @@ function exportICS(){
   });
   lines.push("END:VCALENDAR");
   const blob=new Blob([lines.join("\r\n")],{type:"text/calendar"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download="f1t-week.ics"; document.body.appendChild(a); a.click(); a.remove();
-  const ps=permState(); ps.cal=true; store.set("f1t_perm", JSON.stringify(ps));
-  renderProfile(); toast(t("calExported"));
+  const file=new File([blob],"f1t-week.ics",{type:"text/calendar"});
+  const done=()=>{ const ps=permState(); ps.cal=true; store.set("f1t_perm", JSON.stringify(ps));
+    renderProfile(); toast(t("calExported")); };
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    navigator.share({files:[file],title:"F1T week"}).then(done).catch(()=>{});
+  }else{
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+    a.download="f1t-week.ics"; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000); done();
+  }
 }
 function openEditProfile(){
   const p=S.profile||{}; let goal=p.goal||"maintain";
@@ -853,6 +866,7 @@ function openCoachPlan(){
 
 /* ---------- SHEET + LOGGING ---------- */
 function openSheet(){
+  sheetTitleKey="logTitle"; $("#sheet-title").textContent=t("logTitle");
   const opts=[["meal","utensils",t("logMeal")],["water","droplet",t("logWater")],["weight","scale",t("logWeight")],["steps","footprints",t("logSteps")],["exercise","activity",t("exercise")],["camera","camera",t("takePhoto")]];
   $("#sheet-grid").innerHTML=opts.map(o=>`<button class="sheet-opt" data-k="${o[0]}"><span>${ic(o[1],26)}</span>${o[2]}</button>`).join("");
   $("#sheet").classList.remove("hidden"); $("#sheet-backdrop").classList.remove("hidden");
@@ -862,7 +876,7 @@ function openSheet(){
     if(k==="water") openWater();
     if(k==="weight") openWeight();
     if(k==="steps") openSteps();
-    if(k==="exercise") openExercise();
+    if(k==="exercise") openWorkoutHub();
     if(k==="camera") openCamera();
   });
 }
@@ -1067,4 +1081,239 @@ async function boot(){
 }
 document.addEventListener("DOMContentLoaded", boot);
 window.F1T={state:S,show,applyLang:applyI18n,t,ic:(n,s)=>window.f1tIcon(n,s)};
+
+/* ================= WORKOUT (v8) ================= */
+const WO = () => window.F1T_WORKOUT;
+
+/* ---------- hub: start workout or quick log ---------- */
+function openWorkoutHub(){
+  $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
+    <h2>${ic("dumbbell",22)} ${t("workout")}</h2>
+    <button class="wo-hub" id="wo-start"><span class="wo-hub-ic">${ic("play",26)}</span>
+      <span class="wo-hub-tx"><b>${t("startWorkout")}</b><small>${t("startWorkoutSub")}</small></span><span class="chev">›</span></button>
+    <button class="wo-hub" id="wo-quick"><span class="wo-hub-ic">${ic("clock",26)}</span>
+      <span class="wo-hub-tx"><b>${t("quickLog")}</b><small>${t("quickLogSub")}</small></span><span class="chev">›</span></button>
+    <button class="btn-glass full" id="wo-cancel">${t("cancel")}</button></div></div>`;
+  $("#wo-start").onclick=openMusclePicker;
+  $("#wo-quick").onclick=()=>{ closeModal(); openExercise(); };
+  $("#wo-cancel").onclick=closeModal;
+  $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
+}
+
+/* ---------- muscle picker ---------- */
+function openMusclePicker(){
+  const sel=new Set(); let side="front";
+  const draw=()=>{
+    const list=side==="front"?WO().FRONT_MUSCLES:WO().BACK_MUSCLES;
+    $("#wo-mpills").innerHTML=list.map(m=>{
+      const on=sel.has(m);
+      return `<button class="wo-pill ${on?"on":""}" data-m="${m}">
+        <span class="wo-ck">${on?ic("check",13):""}</span>${ic(WO().MUSCLES.find(x=>x.id===m).ic,20)}${t("muscle_"+m)}</button>`;
+    }).join("");
+    $("#wo-bodymap").innerHTML=WO().bodySVG(sel,side);
+    $$("#wo-mpills .wo-pill").forEach(b=>b.onclick=()=>{ const m=b.dataset.m;
+      sel.has(m)?sel.delete(m):sel.add(m); draw(); });
+    $("#wo-done").style.display=sel.size?"":"none";
+  };
+  $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal modal-tall"><div class="sheet-grip"></div>
+    <h2>${t("targetMuscle")}</h2><p class="wo-sub">${t("selectMuscles")}</p>
+    <div class="seg-sm wo-seg"><button data-s="front" class="on">${t("frontSide")}</button><button data-s="back">${t("backSide")}</button></div>
+    <div class="wo-picker"><div id="wo-mpills" class="wo-pills"></div>
+      <div id="wo-bodymap" class="wo-map"></div></div>
+    <button class="btn-lime" id="wo-done" style="display:none">${t("finished")}</button></div></div>`;
+  draw();
+  $$(".wo-seg button").forEach(b=>b.onclick=()=>{ side=b.dataset.s;
+    $$(".wo-seg button").forEach(x=>x.classList.toggle("on",x===b)); draw(); });
+  $("#wo-done").onclick=()=>openExercisePicker(sel);
+  $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
+}
+
+/* ---------- exercise picker ---------- */
+function openExercisePicker(selMuscles){
+  const picked=[];
+  const pool=WO().EXERCISES.filter(e=>!selMuscles.size||selMuscles.has(e.m));
+  const draw=q=>{
+    const rows=pool.filter(e=>!q||e.en.toLowerCase().includes(q.toLowerCase()));
+    $("#wo-exlist").innerHTML=rows.map(e=>{
+      const on=picked.includes(e.id);
+      return `<button class="food-row wo-exrow ${on?"on":""}" data-id="${e.id}">
+        <span class="f-ico">${ic("dumbbell",20)}</span>
+        <span class="f-info"><b>${e.en}</b><small>${t("muscle_"+e.m)}</small></span>
+        <span class="wo-add">${on?ic("check",18):"+"}</span></button>`;
+    }).join("")||`<div class="empty-note">${t("noResults")}</div>`;
+    $$("#wo-exlist .wo-exrow").forEach(b=>b.onclick=()=>{ const id=b.dataset.id;
+      const i=picked.indexOf(id); i>=0?picked.splice(i,1):picked.push(id); draw($("#wo-search").value); });
+    $("#wo-gobtn").style.display=picked.length?"":"none";
+    $("#wo-count").textContent=picked.length?` (${picked.length})`:"";
+  };
+  $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal modal-tall"><div class="sheet-grip"></div>
+    <h2>${t("addExercises")}<span id="wo-count"></span></h2>
+    <input class="search" id="wo-search" placeholder="${t("searchExercises")}" autocomplete="off">
+    <div id="wo-exlist" class="wo-exlist"></div>
+    <button class="btn-lime" id="wo-gobtn" style="display:none">${t("start")}</button></div></div>`;
+  draw("");
+  $("#wo-search").oninput=e=>draw(e.target.value);
+  $("#wo-gobtn").onclick=()=>openActiveWorkout(picked.map(id=>WO().EXERCISES.find(e=>e.id===id)));
+  $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
+}
+
+/* ---------- active workout ---------- */
+let WO_SESS=null, WO_IV=null;
+function woElapsed(){
+  const s=WO_SESS; if(!s) return 0;
+  return Date.now()-s.startTs-s.paused-(s.pauseStart?Date.now()-s.pauseStart:0);
+}
+function woFmt(ms){
+  const s=Math.max(0,Math.floor(ms/1000));
+  return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+}
+function openActiveWorkout(exList){
+  WO_SESS={ startTs:Date.now(), paused:0, pauseStart:0,
+    exercises:exList.map(e=>({exId:e.id,name:e.en,muscle:e.m,sets:[{kg:"",reps:"",done:false}]})) };
+  renderActiveWorkout();
+  clearInterval(WO_IV);
+  WO_IV=setInterval(()=>{ const el=$("#wo-timer"); if(el) el.textContent=woFmt(woElapsed()); },500);
+}
+function setRowHTML(ex,xi,si,set){
+  const isTime=WO().EXERCISES.find(e=>e.id===ex.exId)?.type==="time";
+  return `<div class="wo-set ${set.done?"done":""}">
+    <span class="wo-setn">${si+1}</span>
+    ${isTime?`<input inputmode="numeric" data-x="${xi}" data-s="${si}" data-f="reps" placeholder="${t("secs")}" value="${set.reps}">`
+      :`<input inputmode="decimal" data-x="${xi}" data-s="${si}" data-f="kg" placeholder="kg" value="${set.kg}">
+        <input inputmode="numeric" data-x="${xi}" data-s="${si}" data-f="reps" placeholder="${t("reps")}" value="${set.reps}">`}
+    <button class="wo-setdone" data-x="${xi}" data-s="${si}">${ic("check",16)}</button></div>`;
+}
+function renderActiveWorkout(){
+  const s=WO_SESS; if(!s) return;
+  $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal modal-tall wo-modal"><div class="sheet-grip"></div>
+    <div class="wo-top"><div><div class="wo-timer" id="wo-timer">${woFmt(woElapsed())}</div><small>${t("workout")}</small></div>
+      <button class="ico-btn" id="wo-pause">${ic(s.pauseStart?"play":"pause",20)}</button></div>
+    <div id="wo-exs">${s.exercises.map((ex,xi)=>`
+      <div class="wo-ex"><div class="wo-exhead"><b>${ex.name}</b><small>${t("muscle_"+ex.muscle)}</small>
+        <button class="wo-rmex" data-x="${xi}" aria-label="remove">×</button></div>
+        <div class="wo-sets" id="wo-sets-${xi}">${ex.sets.map((set,si)=>setRowHTML(ex,xi,si,set)).join("")}</div>
+        <button class="wo-addset" data-x="${xi}">+ ${t("addSet")}</button></div>`).join("")}</div>
+    <button class="btn-glass full" id="wo-addex">+ ${t("addExercises")}</button>
+    <button class="btn-lime" id="wo-finish">${t("finishWorkout")}</button></div></div>`;
+  // wire inputs
+  $$("#wo-exs input").forEach(inp=>inp.onchange=()=>{
+    WO_SESS.exercises[+inp.dataset.x].sets[+inp.dataset.s][inp.dataset.f]=inp.value; });
+  $$(".wo-setdone").forEach(b=>b.onclick=()=>{
+    const ex=WO_SESS.exercises[+b.dataset.x], set=ex.sets[+b.dataset.s];
+    set.done=!set.done; renderActiveWorkout(); if(set.done) openRestTimer(45); });
+  $$(".wo-addset").forEach(b=>b.onclick=()=>{ WO_SESS.exercises[+b.dataset.x].sets.push({kg:"",reps:"",done:false}); renderActiveWorkout(); });
+  $$(".wo-rmex").forEach(b=>b.onclick=()=>{ WO_SESS.exercises.splice(+b.dataset.x,1); renderActiveWorkout(); });
+  $("#wo-pause").onclick=()=>{ const s2=WO_SESS;
+    if(s2.pauseStart){ s2.paused+=Date.now()-s2.pauseStart; s2.pauseStart=0; }
+    else s2.pauseStart=Date.now(); renderActiveWorkout(); };
+  $("#wo-addex").onclick=()=>openExercisePickerAdd();
+  $("#wo-finish").onclick=finishWorkout;
+  $("#mback").onclick=e=>{ if(e.target.id==="mback"){ if(confirm(t("discardWorkout")+"?")){ clearInterval(WO_IV); WO_SESS=null; closeModal(); } } };
+}
+function openExercisePickerAdd(){
+  // simplified add: reuse picker, then merge back into session
+  const existing=WO_SESS.exercises.map(e=>e.exId);
+  const keep=WO_SESS;
+  openExercisePicker(new Set());
+  const orig=$("#wo-gobtn").onclick;
+  $("#wo-gobtn").onclick=()=>{
+    const ids=[...document.querySelectorAll("#wo-exlist .wo-exrow.on")].map(b=>b.dataset.id)
+      .filter(id=>!existing.includes(id));
+    WO_SESS=keep;
+    ids.forEach(id=>{ const e=WO().EXERCISES.find(x=>x.id===id);
+      WO_SESS.exercises.push({exId:e.id,name:e.en,muscle:e.m,sets:[{kg:"",reps:"",done:false}]}); });
+    renderActiveWorkout();
+  };
+}
+/* rest timer overlay */
+function openRestTimer(sec){
+  if($("#rest-ov")) $("#rest-ov").remove();
+  let left=sec;
+  const ov=document.createElement("div"); ov.id="rest-ov";
+  ov.innerHTML=`<div class="rest-card"><div class="rest-ring"><svg width="120" height="120" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="10"/>
+      <circle id="rest-arc" cx="60" cy="60" r="52" fill="none" stroke="#aefe02" stroke-width="10" stroke-linecap="round"
+        stroke-dasharray="${2*Math.PI*52}" stroke-dashoffset="0" transform="rotate(-90 60 60)"/></svg>
+      <div class="rest-t" id="rest-t">${left}</div></div>
+    <div class="rest-label">${t("rest")}</div>
+    <div class="rest-btns"><button id="rest-plus">+15s</button><button id="rest-skip" class="on">${t("skip")}</button></div></div>`;
+  document.body.appendChild(ov);
+  const C=2*Math.PI*52;
+  const iv=setInterval(()=>{ left--;
+    const te=$("#rest-t"); if(!te){ clearInterval(iv); return; }
+    te.textContent=Math.max(0,left);
+    const arc=$("#rest-arc"); if(arc) arc.style.strokeDashoffset=C*(1-Math.max(0,left)/sec);
+    if(left<=0){ clearInterval(iv); ov.remove(); }
+  },1000);
+  $("#rest-skip").onclick=()=>{ clearInterval(iv); ov.remove(); };
+  $("#rest-plus").onclick=()=>{ left+=15; };
+}
+function finishWorkout(){
+  const s=WO_SESS; if(!s) return;
+  clearInterval(WO_IV);
+  const durMin=Math.max(1,Math.round(woElapsed()/60000));
+  const weight=(S.profile&&S.profile.w)||70;
+  const w={ ts:Date.now(), date:WO().todayKey(), durationMin:durMin,
+    exercises:s.exercises.filter(e=>e.sets.some(x=>x.done||x.reps||x.kg))
+      .map(e=>({exId:e.exId,name:e.name,muscle:e.muscle,
+        sets:e.sets.filter(x=>x.done||x.reps||x.kg).map(x=>({kg:parseFloat(x.kg)||0,reps:parseFloat(x.reps)||0}))})) };
+  if(!w.exercises.length){ WO_SESS=null; closeModal(); return; }
+  w.kcal=WO().estKcal(durMin,w.exercises,weight);
+  WO().saveWorkout(w); WO_SESS=null;
+  const vol=w.exercises.reduce((a,e)=>a+e.sets.reduce((b,x)=>b+x.kg*x.reps,0),0);
+  $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
+    <h2>${t("workoutSummary")}</h2>
+    <div class="stat-grid">
+      <div class="glass-card stat-tile"><div class="t-top">${ic("clock",20)} ${t("totalTime")}</div><div class="t-big">${durMin}<small> ${t("min")}</small></div></div>
+      <div class="glass-card stat-tile"><div class="t-top">${ic("dumbbell",20)} ${t("exercises")}</div><div class="t-big">${w.exercises.length}</div></div>
+    </div>
+    <div class="glass-card stat-tile" style="margin-top:12px"><div class="t-top">${ic("scale",20)} ${t("totalVolume")}</div><div class="t-big">${fmt(Math.round(vol))}<small> kg</small></div></div>
+    <div class="glass-card stat-tile" style="margin-top:12px"><div class="t-top">${ic("zap",20)} ${t("calories")}</div><div class="t-big">${fmt(w.kcal)}<small> kcal</small></div></div>
+    <button class="btn-lime" id="wo-ok" style="margin-top:16px">${t("done")}</button></div></div>`;
+  $("#wo-ok").onclick=()=>{ closeModal(); toast(t("workoutSaved")); show(S.view); };
+  $("#mback").onclick=e=>{ if(e.target.id==="mback"){ closeModal(); show(S.view); } };
+}
+
+/* ---------- workout statistics ---------- */
+function woMonthCal(){
+  const W=WO(), now=new Date(), y=now.getFullYear(), m=now.getMonth();
+  const days=new Set(W.loadAll().map(w=>w.date));
+  const first=new Date(y,m,1), startDow=(first.getDay()+6)%7, dim=new Date(y,m+1,0).getDate();
+  const mn=["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"][m];
+  let cells="";
+  for(let i=0;i<startDow;i++) cells+=`<span class="wc-empty"></span>`;
+  for(let d=1;d<=dim;d++){
+    const k=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const isT=k===W.todayKey();
+    cells+=`<span class="wc-day ${days.has(k)?"hit":""} ${isT?"today":""}">${d}</span>`;
+  }
+  return `<div class="wc-head"><b>${t(mn)} ${y}</b></div>
+    <div class="wc-grid">${["mo","tu","we","th","fr","sa","su"].map(d=>`<span class="wc-dow">${t(d)}</span>`).join("")}${cells}</div>`;
+}
+function renderWorkoutStats(){
+  const W=WO(), range=S.woRange||"month";
+  const st=W.rangeStats(range), total=W.loadAll().length;
+  const lp=W.levelProgress(total), ws=W.weekStreak();
+  const trained=new Set(Object.keys(st.byMuscle));
+  $("#stats-body").innerHTML=`
+    <div class="seg-sm wo-segmain"><button data-st="nutrition">${t("nutrition")}</button><button data-st="workouts" class="on">${t("workouts")}</button></div>
+    <div class="seg-sm wo-range">${["week","month","year","all"].map(r=>`<button data-r="${r}" class="${r===range?"on":""}">${t("rng_"+r)}</button>`).join("")}</div>
+    <div class="stat-grid">
+      <div class="glass-card stat-tile"><div class="t-top">${ic("dumbbell",20)} ${t("workouts")}</div><div class="t-big">${st.count}</div></div>
+      <div class="glass-card stat-tile"><div class="t-top">${ic("clock",20)} ${t("totalTime")}</div><div class="t-big">${st.minutes}<small> ${t("min")}</small></div></div>
+    </div>
+    <div class="glass-card stat-tile" style="margin-top:12px"><div class="t-top">${ic("scale",20)} ${t("totalVolume")}</div><div class="t-big">${fmt(st.volume)}<small> kg</small></div></div>
+    <div class="streak-pill" style="margin:14px auto">${ic("flame",18)}<b>${ws}</b><span>${t("weekStreak")}</span></div>
+    <div class="glass-card level-card"><div class="lc-label">${t("yourLevel")}</div>
+      <div class="lc-level">${t("level_"+lp.level)}</div>
+      <div class="lc-barwrap"><div class="lc-bar"><i style="width:${lp.pct}%"></i></div>
+        <small>${lp.next?t("nextLevel",{n:lp.next}):t("maxLevel")}</small></div>
+      <div class="lc-bodies">${W.bodySVG(trained,"front")}${W.bodySVG(trained,"back")}</div>
+      <div class="lc-legend">${["gold","silver","bronze","wood"].map(l=>`<span><i class="ldot l-${l}"></i>${t("level_"+l)}</span>`).join("")}</div></div>
+    <div class="glass-card cal-card">${woMonthCal()}</div>
+    ${st.count?"":`<div class="empty-note">${t("noWorkouts")}</div>`}`;
+  $$(".wo-segmain button").forEach(b=>b.onclick=()=>{ S.statsTab=b.dataset.st; renderStats(); });
+  $$(".wo-range button").forEach(b=>b.onclick=()=>{ S.woRange=b.dataset.r; renderWorkoutStats(); });
+}
+
 })();
