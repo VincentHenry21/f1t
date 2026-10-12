@@ -33,8 +33,12 @@ function toast(msg){ const el=$("#toast"); el.textContent=msg; el.classList.remo
   clearTimeout(el._t); el._t=setTimeout(()=>el.classList.add("hidden"),2200); }
 function show(view){
   S.view=view;
-  $$(".view").forEach(v=>v.classList.remove("active"));
-  $("#view-"+view).classList.add("active");
+  $$(".view").forEach(v=>{ v.classList.remove("active"); v.classList.remove("enter"); clearTimeout(v._enterT); });
+  const vv=$("#view-"+view);
+  vv.classList.add("active");
+  /* entrance stagger plays once per tab switch, never on re-renders */
+  vv.classList.add("enter");
+  vv._enterT=setTimeout(()=>vv.classList.remove("enter"),700);
   $("#tabbar").classList.toggle("hidden", !["home","coach","stats","rewards","profile","settings"].includes(view));
   $$("#tabbar .tab[data-goto]").forEach(b=>b.classList.toggle("on", b.dataset.goto===view));
   window.scrollTo(0,0);
