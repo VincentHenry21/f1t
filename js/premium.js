@@ -287,9 +287,28 @@ function paintPersonas(){
       ${locked?ic("lock",11):""}${t(d[1])}${d[0]!=="coach"?" "+badgeHTML():""}</button>`; }).join("");
   $$("#persona-row [data-pp]").forEach(b=>b.onclick=()=>{
     const v=b.dataset.pp;
-    if(v!=="coach"&&!isPremium()){ openPremiumHub(); return; }
+    if(v!=="coach"&&!isPremium()){ personaUpsell(v); return; }
     setPersona(v); paintPersonas();
   });
+}
+/* soft inline upsell: a chat card, never a blocking purchase modal */
+function personaUpsell(kind){
+  const log=$("#chat-log"); if(!log) return;
+  const old=log.querySelector(".upsell-card");
+  if(old){ old.closest(".msg").scrollIntoView({block:"nearest",behavior:"smooth"}); return; }
+  const isPro=kind==="pro";
+  const card=document.createElement("div");
+  card.className="msg bot";
+  card.innerHTML=`<span class="m-ico">${ic("lock",14)}</span><div class="bubble upsell-card">
+    <b>${t(isPro?"proUpsellT":"nutriUpsellT")}</b>
+    <p>${t(isPro?"proUpsellD":"nutriUpsellD")}</p>
+    <div class="upsell-row">
+      <button class="btn-lime sm" id="upsell-go" type="button">${t("seePremium")}</button>
+      <button class="link-btn" id="upsell-no" type="button">${t("maybeLater")}</button>
+    </div></div>`;
+  log.appendChild(card); log.scrollTop=log.scrollHeight;
+  card.querySelector("#upsell-go").onclick=()=>{ card.remove(); openPremiumHub(); };
+  card.querySelector("#upsell-no").onclick=()=>card.remove();
 }
 
 /* ---------- public API ---------- */
