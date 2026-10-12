@@ -12,6 +12,7 @@
   --r-lg:20px; --r-md:16px;
   --shadow:0 1px 3px rgba(0,0,0,.07);
   --body-bg:#f2f2f0;
+  --amb-top:rgba(174,254,2,.10); --amb-bot:rgba(52,217,104,.07);
   --font:"Space Grotesk","Noto Sans Myanmar",system-ui,-apple-system,sans-serif;
   --font-d:"Oswald","Space Grotesk","Noto Sans Myanmar",system-ui,sans-serif;
   --glass:#ffffff; --glass-brd:#e4e4e1;
@@ -27,6 +28,7 @@
   --track:#232b23; --line:#232b23; --divider:#2c352c;
   --shadow:0 2px 12px rgba(0,0,0,.5);
   --body-bg:#0a0d0a;
+  --amb-top:rgba(174,254,2,.09); --amb-bot:rgba(22,163,74,.12);
   --glass:#131813; --glass-brd:#232b23;
 }
 [data-theme="dark"] #toast{background:#f4f4f2;color:#101010}
@@ -40,6 +42,18 @@ body{
   font-family:var(--font); color:var(--ink); min-height:100dvh; overflow-x:hidden;
   background:var(--body-bg);
   background-attachment:fixed;
+}
+/* ambient layer the frosted pages blur */
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(120% 60% at 50% -10%, var(--amb-top), transparent 60%),
+    radial-gradient(100% 50% at 50% 115%, var(--amb-bot), transparent 62%),
+    var(--body-bg);}
+/* frosted page: translucent + blurred, iOS style */
+.view.active{
+  background:color-mix(in srgb, var(--body-bg) 60%, transparent);
+  -webkit-backdrop-filter:blur(26px) saturate(160%);
+  backdrop-filter:blur(26px) saturate(160%);
 }
 button{font-family:var(--font);border:0;background:none;cursor:pointer;color:inherit}
 input,select{font-family:var(--font)}
