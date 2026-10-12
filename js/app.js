@@ -16,7 +16,7 @@ const ic = (n,s) => window.f1tIcon(n, s || 20);
 
 const S = {
   lang: store.get("f1t_lang") || "en",
-  theme: store.get("f1t_theme") || "light",
+  theme: store.get("f1t_theme") || "dark",
   profile: null, day: null, dateKey: window.F1T_todayKey(),
   user: null, guest: store.get("f1t_guest")==="1",
   view: "splash", obStep: 0, ob: {},
@@ -35,10 +35,11 @@ function show(view){
   S.view=view;
   $$(".view").forEach(v=>v.classList.remove("active"));
   $("#view-"+view).classList.add("active");
-  $("#tabbar").classList.toggle("hidden", !["home","stats","rewards","profile"].includes(view));
+  $("#tabbar").classList.toggle("hidden", !["home","coach","stats","rewards","profile"].includes(view));
   $$("#tabbar .tab[data-goto]").forEach(b=>b.classList.toggle("on", b.dataset.goto===view));
   window.scrollTo(0,0);
   if(view==="home") renderHome();
+  if(view==="coach") renderCoach();
   if(view==="stats") renderStats();
   if(view==="rewards") renderRewards();
   if(view==="profile") renderProfile();
@@ -55,6 +56,7 @@ function fmt(n){ return n.toLocaleString("en-US"); }
 /* ---------- profile / day ---------- */
 async function loadAll(){
   S.profile = window.F1TFB.loadProfile();
+  if(!store.get("f1t_lang") && S.profile && S.profile.lang){ S.lang=S.profile.lang; }
   const remote = await window.F1TFB.pullProfile();
   if(remote && !S.profile){ S.profile = remote; await window.F1TFB.saveProfile(remote); }
   S.day = window.F1TFB.loadDay(S.dateKey);
@@ -181,6 +183,8 @@ function renderOb(){
         <div style="font-size:38px;font-weight:800" id="ob-target">--</div>
         <div style="font-size:12px;font-weight:700;color:var(--ink2)">${t("kcal")} / ${t("days")}</div>
       </div>
+      <div class="accept-row"><input type="checkbox" id="ob-accept">
+        <span>${t("acceptRules")} <button type="button" id="ob-rules">${t("rulesTitle")}</button></span></div>
       <div class="ob-nav"><button class="btn-back" id="ob-back">${t("back")}</button><button class="btn-lime" id="ob-done">${t("letsGo")}</button></div></div>`;
     const upd=()=>{ o.target=window.F1T_calcTarget(o.sex,o.age,o.h,o.w,o.goal||"maintain",!!o.active);
       $("#ob-target").textContent=fmt(o.target); };
@@ -192,8 +196,10 @@ function renderOb(){
     };
     o.goal=o.goal||"maintain"; upd();
     $("#ob-back").onclick=()=>{ S.obStep=1; renderOb(); };
+    $("#ob-rules").onclick=e=>{ e.stopPropagation(); openRules(); };
     $("#ob-done").onclick=async()=>{
-      S.profile={name:o.name,age:o.age,sex:o.sex,h:o.h,w:o.w,goal:o.goal,active:!!o.active,targetKcal:o.target,lang:S.lang,created:Date.now()};
+      if(!$("#ob-accept").checked){ toast(t("mustAccept")); return; }
+      S.profile={name:o.name,age:o.age,sex:o.sex,h:o.h,w:o.w,goal:o.goal,active:!!o.active,targetKcal:o.target,lang:S.lang,created:Date.now(),policyAccepted:Date.now()};
       await window.F1TFB.saveProfile(S.profile);
       toast(t("targetUpdated")); show("home");
     };
@@ -323,66 +329,169 @@ function greeting(){
   const h=yangonNow().getHours();
   return h<12?t("hiMorning"):h<17?t("hiAfternoon"):t("hiEvening");
 }
+/* ---------- SUMMARY (home) ---------- */
+function ringSVG(pct,color,size){
+  size=size||76; const r=(size-14)/2, c=2*Math.PI*r, off=c*(1-Math.min(1,Math.max(0,pct)));
+  const h=size/2;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${h}" cy="${h}" r="${r}" fill="none" stroke="var(--track)" stroke-width="7"/><circle cx="${h}" cy="${h}" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 ${h} ${h})"/></svg>`;
+}
+function mealScore(x){
+  let s=5; const k=x.kcal||0;
+  if(k>0&&k<=700) s+=1.5; else if(k>900) s-=1.5;
+  s+=Math.min(2.5, ((x.p||0)*4/Math.max(1,k))*10);
+  return Math.max(1,Math.min(10,Math.round(s*10)/10));
+}
+function fmtTime(ts){
+  try{ return new Date(ts).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}); }catch(e){ return ""; }
+}
 function renderHome(){
-  const p=S.profile||{}, d=S.day;
-  $("#home-hi").textContent=greeting();
-  const nm=(p.name||t("guest")); $("#home-name").textContent=nm;
-  $("#home-avatar").textContent=(nm[0]||"F").toUpperCase();
+  const p=S.profile||{}, d=S.day||{};
+  const C=window.F1T_COACH, A=window.F1T_ANALYSIS;
+  const nm=(p.name||t("guest"));
+  let st=0; try{ st=streak(); }catch(e){}
+  /* header: streak + actions */
+  $("#view-home .home-head").innerHTML=`
+    <div class="streak-pill">${ic("flame",15)}<b>${st}</b></div>
+    <div class="head-ico">
+      <button class="ico-btn" id="home-cal" type="button" aria-label="calendar">${ic("calendar",19)}</button>
+      <button class="ico-btn" id="home-bell" type="button" aria-label="notifications">${ic("bell",19)}<span class="dot"></span></button>
+      ${avatarHTML(p)}
+    </div>`;
+  $("#home-cal").onclick=openDatePicker;
+  $("#home-bell").onclick=openNotif;
+  /* score + rings */
+  const score=C?C.dailyScore(d,p):0;
   const target=p.targetKcal||2000;
-  const wk=dayKeys(7).filter(k=>{ const dd=k===S.dateKey?d:window.F1TFB.loadDay(k); return dd&&dd.kcal>0; }).length;
-  const ringC=2*Math.PI*44, ringP=Math.min(1,wk/7);
-  const meals=["breakfast","lunch","dinner","snacks"];
-  const mealKcal=m=> (d.meals[m]||[]).reduce((a,x)=>a+x.kcal,0);
-  const thumbs=m=> (d.meals[m]||[]).slice(0,3).map(x=>x.photo?`<span><img src="${x.photo}" alt=""></span>`:`<span>${ic(x.ic||"bowl",20)}</span>`).join("");
-  // date strip: week Mon..Sun, S.homeWeek=0 is current week
-  const now=yangonNow(); const dow=(now.getDay()+6)%7;
-  const mon=new Date(now); mon.setDate(mon.getDate()-dow-(S.homeWeek||0)*7);
-  const months=[t("jan"),t("feb"),t("mar"),t("apr"),t("may"),t("jun"),t("jul"),t("aug"),t("sep"),t("oct"),t("nov"),t("dec")];
-  const dows=[t("mon"),t("tue"),t("wed"),t("thu"),t("fri"),t("sat"),t("sun")];
-  let ds="";
-  for(let i=0;i<7;i++){ const dt=new Date(mon); dt.setDate(dt.getDate()+i);
-    const k=window.F1T_todayKey(dt); const isT=k===S.dateKey;
-    ds+=`<button class="ds-day ${isT?"today":""}" data-k="${k}"><span>${dows[i]}</span><b>${dt.getDate()}</b></button>`; }
-  const cups=Math.floor(d.water/250);
-  const drops=Array.from({length:8},(_,i)=>`<i class="${i<Math.min(8,cups)?"on":""}">${ic("droplet",13)}</i>`).join("");
-  const healthCard = renderHealthCard();
+  const mt=A?A.macroTargets(p):{p:100,c:250,f:65};
+  const rings=[
+    {lab:t("kcal"), pct:(d.kcal||0)/target, val:fmt(d.kcal||0), unit:t("kcal"), color:"#aefe02"},
+    {lab:t("protein"), pct:(d.p||0)/mt.p, val:Math.round(d.p||0), unit:"g", color:"#34d968"},
+    {lab:t("carbs"), pct:(d.c||0)/mt.c, val:Math.round(d.c||0), unit:"g", color:"#7ce79b"},
+  ];
+  /* coach notifications */
+  const yD=new Date(yangonNow()); yD.setDate(yD.getDate()-1);
+  const yK=window.F1T_todayKey(yD);
+  const prevDay=yK===S.dateKey?d:window.F1TFB.loadDay(yK);
+  const dinnerKcal=Math.max(300, Math.round(target-(d.kcal||0)));
+  const notifs=C?C.notifications(d,prevDay,p,t,{dinnerKcal:dinnerKcal}):[];
+  const dismissed=S._dismissed||{};
+  /* food journal */
+  const entries=[];
+  ["breakfast","lunch","dinner","snacks"].forEach(m=>((d.meals||{})[m]||[]).forEach(x=>entries.push(x)));
+  entries.sort((a,b)=>(a.at||0)-(b.at||0));
+  const dots=entries.filter(x=>x.at).map(x=>{
+    const dt=new Date(x.at); const pct=Math.min(100,(dt.getHours()*60+dt.getMinutes())/14.4);
+    return `<i style="left:${pct.toFixed(1)}%"></i>`; }).join("");
+  /* weight sparkline */
+  const wts=dayKeys(14).map(k=>{ const dd=k===S.dateKey?d:window.F1TFB.loadDay(k); return dd&&dd.weight?dd.weight:null; });
+  const wvals=wts.filter(v=>v!=null);
+  let spark="";
+  if(wvals.length>1){
+    const mn=Math.min(...wvals), mx=Math.max(...wvals), rg=Math.max(0.5,mx-mn);
+    const pts=wvals.map((v,i)=>`${(i/(wvals.length-1)*100).toFixed(1)},${(34-(v-mn)/rg*28).toFixed(1)}`).join(" ");
+    spark=`<svg class="w-spark" viewBox="0 0 100 38" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="#aefe02" stroke-width="2.5" stroke-linecap="round"/></svg>`;
+  }
   $("#home-body").innerHTML=`
-    <div class="glass-card intake-card">
-      <div><div class="intake-top"><span class="zap">${ic("zap",13)}</span>${t("dailyIntake")}</div>
-        <h2>${t("weeklyProgress")}</h2>
-        <div class="intake-sub">${fmt(d.kcal)} / ${fmt(target)} ${t("kcal")}</div>
-        <div class="kcal-bar"><i style="width:${Math.min(100,Math.round(d.kcal/target*100))}%"></i></div>
-      </div>
-      <div class="ring"><svg width="104" height="104"><circle cx="52" cy="52" r="44" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="11"/>
-        <circle cx="52" cy="52" r="44" fill="none" stroke="#141414" stroke-width="11" stroke-linecap="round" stroke-dasharray="${ringC}" stroke-dashoffset="${ringC*(1-ringP)}"/></svg>
-        <div class="rv"><b>${wk}</b><small>${t("days")}</small></div></div>
+    <div class="score-hero"><div class="score-num">${score.toFixed(1)}</div><div class="score-label">${t("dailyScore")}</div></div>
+    <div class="glass-card rings-card">${rings.map(r=>`
+      <div class="mring"><div class="mring-top">${ringSVG(r.pct,r.color)}<b>${Math.round(Math.min(1,Math.max(0,r.pct))*100)}%</b></div>
+      <div class="mlab">${r.lab}</div><div class="mval">${r.val} ${r.unit}</div></div>`).join("")}</div>
+    <div id="coach-notifs">${notifs.map((n,i)=>dismissed[S.dateKey+":"+i]?"":`
+      <div class="coach-notif"><div class="cn-head"><span class="cn-ico">F</span><b>${t("coach")}</b><button class="cn-x" data-x="${i}">×</button></div>
+      <p>${n.text}</p>
+      <div class="cn-actions">${n.actions.map((a,j)=>`<button data-ni="${i}" data-ai="${j}">${a.label}</button>`).join("")}</div></div>`).join("")}</div>
+    <div class="glass-card journal-card">
+      <div class="jc-head"><b>${t("foodJournal")}</b><span class="jc-go">↗</span></div>
+      <div class="j-timeline"><div class="j-line"></div>${dots}</div>
+      <div class="j-times"><span>00:00</span><span>12:00</span><span>23:59</span></div>
+      <div class="j-list">${entries.length?entries.map(x=>{ const sc=mealScore(x);
+          const col=sc>=7?"#aefe02":sc>=4?"#34d968":"#ff6b62";
+          return `<div class="j-entry"><span class="j-score" style="color:${col}">${sc.toFixed(1)}</span>
+            <span class="j-name">${x.name||t("snacks")}</span><span class="j-time">${x.at?fmtTime(x.at):""}</span></div>`; }).join("")
+        :`<div class="empty-note">${t("noEntries")}</div>`}</div>
     </div>
-    <div class="duo">
-      <div class="glass-card mini" id="mini-steps"><div class="m-top"><span>${t("stepsToWalk")}</span><span class="m-ico">${ic("footprints",18)}</span></div>
-        <div class="m-big">${fmt(d.steps)} <small>${t("steps")}</small></div>${S.health&&S.health.steps?`<div class="sync-note">${ic("sync",12)} ${t("fromHealth")}</div>`:""}</div>
-      <div class="glass-card mini" id="mini-water"><div class="m-top"><span>${t("drinkWater")}</span><span class="m-ico">${ic("droplet",18)}</span></div>
-        <div class="m-big">${cups} <small>${t("glass")}</small></div>
-        <div class="water-drops">${drops}</div></div>
+    <div class="glass-card weight-card">
+      <div class="jc-head"><b>${t("weightKg")}</b><button class="jc-go" id="w-log">↗</button></div>
+      <div class="w-big">${p.w||"--"}<small> kg</small></div>${spark}
     </div>
-    ${healthCard}
-    <div class="glass-card tip-card"><span class="tip-ico">${ic("zap",18)}</span>
-      <div><b>${t("tipTitle")}</b><p>${t("tip"+window.F1T_ANALYSIS.tipOfDay(S.dateKey))}</p></div></div>
-    <div class="glass-card datestrip"><div class="ds-head"><b>${months[mon.getMonth()]} ${mon.getFullYear()}</b>
-      <div class="ds-nav"><button id="ds-prev">‹</button><button id="ds-next">›</button></div></div>
-      <div class="ds-row">${ds}</div></div>
-    ${meals.map(m=>{ const k=mealKcal(m);
-      return `<div class="glass-card meal"><div class="m-info"><b>${t(m)}</b>
-        <div class="m-kcal">${ic("flame",14)} ${k? fmt(k)+" "+t("kcal") : "0 "+t("kcal")}</div></div>
-        <div class="m-thumbs">${thumbs(m)}</div>
-        <button class="add-btn" data-meal="${m}">+</button></div>`; }).join("")}`;
-  $$("#home-body .add-btn").forEach(b=>b.onclick=()=>openMealPicker(b.dataset.meal));
-  $$("#home-body .ds-day").forEach(b=>b.onclick=()=>switchDate(b.dataset.k));
-  $("#ds-prev").onclick=()=>{ S.homeWeek=(S.homeWeek||0)+1; renderHome(); };
-  $("#ds-next").onclick=()=>{ S.homeWeek=Math.max(0,(S.homeWeek||0)-1); renderHome(); };
-  const ms=$("#mini-steps"), mw=$("#mini-water");
-  if(ms) ms.onclick=openSteps; if(mw) mw.onclick=openWater;
-  const uh=$("#use-health-steps"); if(uh) uh.onclick=()=>{ S.day.steps=S.health.steps; saveDay(); renderHome(); toast(t("logged")); };
+    ${renderCoachCard()}`;
+  $$("#coach-notifs .cn-x").forEach(b=>b.onclick=()=>{ S._dismissed=S._dismissed||{}; S._dismissed[S.dateKey+":"+b.dataset.x]=1; renderHome(); });
+  $$("#coach-notifs [data-ai]").forEach(b=>b.onclick=()=>{ const n=notifs[+b.dataset.ni]; if(n) coachAsk(n.actions[+b.dataset.ai].prompt); });
+  const cc=$("#coach-card"); if(cc) cc.onclick=openCoachPlan;
+  const wl=$("#w-log"); if(wl) wl.onclick=openWeight;
   refreshBell();
+}
+
+/* ---------- AI COACH ---------- */
+let CHAT=[];
+function chatLoad(){ try{ CHAT=JSON.parse(store.get("f1t_chat")||"[]"); }catch(e){ CHAT=[]; } }
+function chatSave(){ try{ store.set("f1t_chat", JSON.stringify(CHAT.slice(-30))); }catch(e){} }
+function chatHTML(){
+  return CHAT.map(m=> m.r==="user"
+    ? `<div class="msg user"><div class="bubble">${m.x.replace(/</g,"&lt;")}</div></div>`
+    : `<div class="msg bot"><span class="m-ico">${ic("zap",14)}</span><div class="bubble">${m.x.replace(/</g,"&lt;").replace(/\n/g,"<br>")}</div></div>`
+  ).join("");
+}
+function renderCoach(){
+  chatLoad();
+  $("#coach-body").innerHTML=`
+    <div class="chat-log" id="chat-log">${chatHTML()||""}</div>
+    <div class="chat-suggest">
+      <button data-q="ntPlanDinnerP">${t("ntPlanDinner")}</button>
+      <button data-q="ntQuickWorkoutP">${t("ntQuickWorkout")}</button>
+      <button data-q="ntProteinIdeasP">${t("ntProteinIdeas")}</button>
+    </div>
+    <div class="chat-input"><input id="chat-in" placeholder="${t("askCoach")}" autocomplete="off">
+      <button id="chat-send" aria-label="send">${ic("send",18)}</button></div>`;
+  const log=$("#chat-log");
+  if(!CHAT.length){ CHAT.push({r:"bot",x:t("coachWelcome")}); chatSave(); log.innerHTML=chatHTML(); }
+  log.scrollTop=log.scrollHeight;
+  const send=()=>{ const inp=$("#chat-in"), v=inp.value.trim(); if(!v) return; inp.value=""; askCoach(v); };
+  $("#chat-send").onclick=send;
+  $("#chat-in").onkeydown=e=>{ if(e.key==="Enter") send(); };
+  $$("#coach-body [data-q]").forEach(b=>b.onclick=()=>askCoach(t(b.dataset.q)));
+}
+function coachAsk(prompt){ show("coach"); setTimeout(()=>askCoach(prompt),350); }
+async function askCoach(text){
+  const log=$("#chat-log"); if(!log) return;
+  CHAT.push({r:"user",x:text}); chatSave(); log.innerHTML=chatHTML();
+  const th=document.createElement("div"); th.className="msg bot";
+  th.innerHTML=`<span class="m-ico">${ic("zap",14)}</span><div class="bubble"><i>${t("coachThinking")}</i></div>`;
+  log.appendChild(th); log.scrollTop=log.scrollHeight;
+  try{
+    const reply=await coachReply(text);
+    CHAT.push({r:"bot",x:reply});
+  }catch(e){ CHAT.push({r:"bot",x:t("coachOffline")}); }
+  chatSave(); log.innerHTML=chatHTML(); log.scrollTop=log.scrollHeight;
+}
+function coachSystem(){
+  const p=S.profile||{}, d=S.day||{};
+  const plan=window.F1T_COACH?window.F1T_COACH.plan(p):null;
+  const n=plan?plan.nutrition:null;
+  return "You are F1T Coach, an expert fitness and nutrition coach inside the F1T calorie tracker app. "+
+    "Reply concisely (under 120 words unless asked for detail), practical and encouraging. Use metric units. "+
+    "Never diagnose medical conditions; suggest a professional for health concerns. "+
+    "User profile: name="+(p.name||"friend")+", age="+(p.age||"?")+", height="+(p.h||"?")+"cm, weight="+(p.w||"?")+
+    "kg, goal="+(p.goal||"maintain")+", daily target="+(p.targetKcal||2000)+"kcal. "+
+    "Today so far: "+(d.kcal||0)+"kcal, protein "+(d.p||0)+"g, carbs "+(d.c||0)+"g, fat "+(d.f||0)+
+    "g, water "+(d.water||0)+"ml, steps "+(d.steps||0)+", exercise "+(d.exercise||0)+"h. "+
+    (n?("Their daily plan: "+n.protein+"g protein, "+n.carbs+"g carbs, "+n.fat+"g fat. "):"")+
+    "Today is "+new Date().toDateString()+".";
+}
+async function coachReply(text){
+  const msgs=[{role:"system",content:coachSystem()}];
+  CHAT.slice(-10).forEach(m=>msgs.push({role:m.r==="user"?"user":"assistant",content:m.x}));
+  msgs.push({role:"user",content:text});
+  const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(),45000);
+  try{
+    const r=await fetch("https://text.pollinations.ai/",{method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({messages:msgs,model:"openai"}),signal:ctl.signal});
+    if(!r.ok) throw new Error("ai "+r.status);
+    const out=(await r.text()).trim();
+    if(!out) throw new Error("empty");
+    return out;
+  }finally{ clearTimeout(to); }
 }
 
 /* ---------- STATS ---------- */
@@ -423,7 +532,7 @@ function renderAnalysis(){
         ${mRow(t("fat"),an.macros.f,"droplet")}
       </div>
       ${totG?`<div class="segbar">${seg(an.macros.p.a,"sp")}${seg(an.macros.c.a,"sc")}${seg(an.macros.f.a,"sf")}</div>
-      <div class="seg-leg"><span><span class="cl-dot" style="background:#f2542d"></span>${t("protein")}</span><span><span class="cl-dot" style="background:#ffc53d"></span>${t("carbs")}</span><span><span class="cl-dot" style="background:#7fc400"></span>${t("fat")}</span></div>`:""}
+      <div class="seg-leg"><span><span class="cl-dot" style="background:#16a34a"></span>${t("protein")}</span><span><span class="cl-dot" style="background:#aefe02"></span>${t("carbs")}</span><span><span class="cl-dot" style="background:#0d7a2c"></span>${t("fat")}</span></div>`:""}
       </div></div>
     <div class="insights">${cards}</div>`;
 }
@@ -452,12 +561,12 @@ function renderStats(){
           <circle cx="60" cy="60" r="52" fill="none" stroke="url(#calg)" stroke-width="12" stroke-linecap="round"
             stroke-dasharray="${2*Math.PI*52}" stroke-dashoffset="${(2*Math.PI*52)*(1-Math.min(1,d.kcal/target))}"/>
           <defs><linearGradient id="calg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#ffc53d"/><stop offset="1" stop-color="#f2542d"/></linearGradient></defs></svg>
+            <stop offset="0" stop-color="#aefe02"/><stop offset="1" stop-color="#16a34a"/></linearGradient></defs></svg>
           <div class="rv"><b>${fmt(d.kcal)}</b><small>${t("eaten")}</small></div></div>
         <div class="cal-legend">
-          <div class="cl-row"><span class="cl-dot" style="background:#f2542d"></span>${t("eaten")}<b>${fmt(d.kcal)}</b></div>
-          <div class="cl-row"><span class="cl-dot" style="background:#b8f04a"></span>${t("left")}<b>${fmt(Math.max(0,target-d.kcal))}</b></div>
-          <div class="cl-row"><span class="cl-dot" style="background:#7cc7ff"></span>${t("target")}<b>${fmt(target)}</b></div>
+          <div class="cl-row"><span class="cl-dot" style="background:#e5484d"></span>${t("eaten")}<b>${fmt(d.kcal)}</b></div>
+          <div class="cl-row"><span class="cl-dot" style="background:#16a34a"></span>${t("left")}<b>${fmt(Math.max(0,target-d.kcal))}</b></div>
+          <div class="cl-row"><span class="cl-dot" style="background:#9ca3af"></span>${t("target")}<b>${fmt(target)}</b></div>
         </div></div>
       <div class="bars">${bars}</div></div>
     ${renderAnalysis()}
@@ -517,24 +626,47 @@ function renderProfile(){
   $("#profile-body").innerHTML=`
     <div class="glass-card logo-card"><img class="app-logo logo-profile" src="assets/icons/icon-192.png" alt="F1T">
       <div><div class="logo-md">F1<span>T</span></div><small>${t("tagline")}</small></div></div>
-    <div class="glass-card prof-card"><div class="avatar">${((p.name||"F")[0]||"F").toUpperCase()}</div>
-      <div><b>${p.name||t("guest")}</b><small>${t("signedInAs")}: ${who}</small></div></div>
+    <div class="glass-card prof-card" id="prof-edit"><div class="avatar-wrap">${avatarHTML(p)}
+      <button class="avatar-edit" id="av-edit" aria-label="customize">${ic("pencil",15)}</button></div>
+      <div style="flex:1;min-width:0"><b>${p.name||t("guest")}</b><small>${p.accountName||who}</small>${(()=>{const parts=[];if(p.birthday)parts.push(fmtBD(p.birthday));if(p.age!=null)parts.push(t("age")+" "+p.age);if(p.sign)parts.push(t(p.sign));return parts.length?`<small>${parts.join(" · ")}</small>`:"";})()}</div>
+      <span class="chev">›</span></div>
+    <div class="glass-card body-card">
+      <div class="plan-row"><span>${t("bodyStatus")}</span><b>${bmi?bmi.value.toFixed(1)+" · "+t(BMI_CATKEY[bmi.cat]):"--"}</b></div>
+      <div class="plan-row"><span>${t("goal")}</span><b class="hl">${t(p.goal||"maintain")}</b></div>
+    </div>
     <div class="glass-card p-stats">
       <div><b>${bmi?bmi.value.toFixed(1):"--"}</b><small>${t("bmi")}</small></div>
       <div><b>${fmt(p.targetKcal||2000)}</b><small>${t("kcal")}${t("perDay")}</small></div>
       <div><b>${st}</b><small>${t("dayStreak")}</small></div></div>
-    <div class="menu-list">
-      <button class="glass-card menu-row" id="m-lang"><span class="mr-ico">${ic("globe",20)}</span><span class="mr-t">${t("language")}</span><span class="mr-sub">${t("langName")}</span><span class="chev">›</span></button>
-      <button class="glass-card menu-row" id="m-goals"><span class="mr-ico">${ic("target",20)}</span><span class="mr-t">${t("editGoals")}</span><span class="mr-sub">${fmt(p.targetKcal||2000)} ${t("kcal")}</span><span class="chev">›</span></button>
-      <div class="glass-card menu-row theme-row" id="m-theme"><div class="theme-top"><span class="mr-ico">${ic("sun",20)}</span><span class="mr-t">${t("appearance")}</span></div>
+    <div class="glass-card set-card">
+      <div class="set-head">${t("settings")}</div>
+      <div class="menu-row theme-row" id="m-theme"><div class="theme-top"><span class="mr-ico">${ic("sun",20)}</span><span class="mr-t">${t("appearance")}</span></div>
         <span class="seg-sm theme-seg"><button data-th="light" class="${S.theme!=="dark"?"on":""}">${t("lightMode")}</button><button data-th="dark" class="${S.theme==="dark"?"on":""}">${t("darkMode")}</button></span></div>
+      <button class="menu-row" id="m-lang"><span class="mr-ico">${ic("globe",20)}</span><span class="mr-t">${t("language")}</span><span class="mr-sub">${t("langName")}</span><span class="chev">›</span></button>
+      <div class="set-sub">${t("permissions")}</div>
+      ${["camera","motion","cal"].map(k=>`
+      <button class="menu-row perm-row" data-perm="${k}"><span class="mr-ico">${ic(k==="camera"?"camera":k==="motion"?"activity":"calendar",20)}</span>
+        <span class="mr-t">${t(k==="camera"?"allowCamera":k==="motion"?"allowMotion":"allowCalendar")}</span>
+        <span class="pill ${permState()[k]?"good":""}">${permState()[k]?t("allowed"):t("notAllowed")}</span></button>`).join("")}
+      <button class="menu-row" id="m-export"><span class="mr-ico">${ic("calendar",20)}</span><span class="mr-t">${t("exportCal")}</span><span class="chev">›</span></button>
+      <button class="menu-row" id="m-terms"><span class="mr-ico">${ic("doc",20)}</span><span class="mr-t">${t("rulesTitle")}</span><span class="chev">›</span></button>
+    </div>
+    <div class="menu-list">
+      <button class="glass-card menu-row" id="m-rewards"><span class="mr-ico">${ic("trophy",20)}</span><span class="mr-t">${t("rewards")}</span><span class="chev">›</span></button>
+      <button class="glass-card menu-row" id="m-goals"><span class="mr-ico">${ic("target",20)}</span><span class="mr-t">${t("editGoals")}</span><span class="mr-sub">${fmt(p.targetKcal||2000)} ${t("kcal")}</span><span class="chev">›</span></button>
       <button class="glass-card menu-row" id="m-install"><span class="mr-ico">${ic("smartphone",20)}</span><span class="mr-t">${t("installApp")}</span><span class="chev">›</span></button>
       <button class="glass-card menu-row danger" id="m-logout"><span class="mr-ico">${ic("logout",20)}</span><span class="mr-t">${t("logout")}</span></button>
     </div>
-    <div class="empty-note">${t("version")}</div>`;
-  $("#m-lang").onclick=()=>{ S.lang=S.lang==="en"?"my":"en"; store.set("f1t_lang",S.lang);
-    if(S.profile){ S.profile.lang=S.lang; window.F1TFB.saveProfile(S.profile); } applyI18n(); };
+    <div class="empty-note">${t("version")}</div>
+    <div class="empty-note profile-copy">${t("copyright")}</div>`;
+  $("#m-lang").onclick=openLangSheet;
+  $("#prof-edit").onclick=openEditProfile;
+  $("#av-edit").onclick=e=>{ e.stopPropagation(); openAvatarSheet(); };
+  $("#m-terms").onclick=openRules;
+  $("#m-export").onclick=exportICS;
+  $$(".perm-row").forEach(b=>b.onclick=()=>requestPerm(b.dataset.perm));
   $("#m-goals").onclick=openGoals;
+  $("#m-rewards").onclick=()=>show("rewards");
   $("#m-theme").onclick=e=>{ const b=e.target.closest("[data-th]"); if(!b) return;
     S.theme=b.dataset.th; applyTheme();
     $$("#m-theme [data-th]").forEach(x=>x.classList.toggle("on",x===b)); };
@@ -549,9 +681,90 @@ function renderProfile(){
     $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
   };
 }
+function permState(){ try{ return Object.assign({camera:false,motion:false,cal:false}, JSON.parse(store.get("f1t_perm")||"{}")); }catch(e){ return {camera:false,motion:false,cal:false}; } }
+async function requestPerm(kind){
+  let ok=false;
+  try{
+    if(kind==="camera"){ const st=await navigator.mediaDevices.getUserMedia({video:true}); st.getTracks().forEach(x=>x.stop()); ok=true; }
+    else if(kind==="motion"){
+      if(typeof DeviceMotionEvent!=="undefined" && DeviceMotionEvent.requestPermission){ ok=(await DeviceMotionEvent.requestPermission())==="granted"; }
+      else ok=true;
+    }
+    else if(kind==="cal"){ ok=!permState().cal; }
+  }catch(e){ ok=false; }
+  const ps=permState(); ps[kind]=ok; store.set("f1t_perm", JSON.stringify(ps));
+  renderProfile(); toast(ok?t("allowed"):t("notAllowed"));
+}
+function setLang(L){
+  S.lang=L; store.set("f1t_lang",L); document.documentElement.lang=L;
+  if(S.profile){ S.profile.lang=L; window.F1TFB.saveProfile(S.profile); }
+  applyI18n();
+}
+function openLangSheet(){
+  const langs=[["en","English"],["my","မြန်မာ"],["th","ไทย"],["zh","中文"],["ja","日本語"]];
+  $("#sheet-grid").innerHTML=langs.map(l=>`<button class="sheet-opt" data-lang="${l[0]}"><span style="font-size:22px;font-weight:800">${l[1].slice(0,2)}</span>${l[1]}${S.lang===l[0]?" ✓":""}</button>`).join("");
+  $("#sheet").classList.remove("hidden"); $("#sheet-backdrop").classList.remove("hidden");
+  $$("#sheet-grid [data-lang]").forEach(b=>b.onclick=()=>{ closeSheet(); setLang(b.dataset.lang); });
+}
+function exportICS(){
+  const keys=dayKeys(7), lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//F1T//Coach//EN"];
+  keys.forEach(k=>{
+    const d=window.F1TFB.loadDay(k); if(!d||!d.kcal) return;
+    const dt=k.replace(/-/g,"");
+    const desc=`${d.kcal} kcal`+(d.exercise?`, ${d.exercise}h exercise`:"");
+    lines.push("BEGIN:VEVENT","UID:"+dt+"@f1t","DTSTAMP:"+dt+"T000000Z","DTSTART:"+dt,
+      "SUMMARY:F1T log - "+desc.replace(/,/g,"\\,").replace(/:/g,"\\:"),"END:VEVENT");
+  });
+  lines.push("END:VCALENDAR");
+  const blob=new Blob([lines.join("\r\n")],{type:"text/calendar"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download="f1t-week.ics"; document.body.appendChild(a); a.click(); a.remove();
+  const ps=permState(); ps.cal=true; store.set("f1t_perm", JSON.stringify(ps));
+  renderProfile(); toast(t("calExported"));
+}
+function openEditProfile(){
+  const p=S.profile||{}; let goal=p.goal||"maintain";
+  const signs=["signAries","signTaurus","signGemini","signCancer","signLeo","signVirgo",
+               "signLibra","signScorpio","signSagittarius","signCapricorn","signAquarius","signPisces"];
+  $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
+    <h2>${t("editProfile")}</h2>
+    <div class="field"><label>${t("username")}</label><input id="ep-name" maxlength="40" value="${(p.name||"").replace(/"/g,"&quot;")}"></div>
+    <div class="field"><label>${t("accountName")}</label><input id="ep-acc" maxlength="60" value="${(p.accountName||"").replace(/"/g,"&quot;")}"></div>
+    <div class="field"><label>${t("birthday")}</label><input id="ep-bd" type="date" value="${p.birthday||""}"></div>
+    <div class="field"><label>${t("age")}</label><input id="ep-age" type="number" inputmode="numeric" min="5" max="120" value="${p.age!=null?p.age:""}"></div>
+    <div class="field"><label>${t("sign")}</label><select id="ep-sign">${signs.map(sg=>`<option value="${sg}" ${p.sign===sg?"selected":""}>${t(sg)}</option>`).join("")}</select></div>
+    <div class="field"><label>${t("goal")}</label><div class="seg-sm" id="ep-goal">
+      ${["lose","maintain","gain"].map(g=>`<button data-g="${g}" class="${goal===g?"on":""}">${t(g)}</button>`).join("")}</div></div>
+    <button class="btn-lime" id="ep-save">${t("save")}</button></div></div>`;
+  $("#ep-bd").onchange=e=>{ const v=e.target.value;
+    if(v){ const pm=v.split("-").map(Number); const a=ageFrom(v); if(a!=null) $("#ep-age").value=a;
+      $("#ep-sign").value=zodiacSign(pm[1],pm[2]); } };
+  $$("#ep-goal button").forEach(b=>b.onclick=()=>{ goal=b.dataset.g;
+    $$("#ep-goal button").forEach(x=>x.classList.toggle("on",x===b)); });
+  $("#ep-save").onclick=async()=>{
+    p.name=$("#ep-name").value.trim(); p.accountName=$("#ep-acc").value.trim();
+    p.birthday=$("#ep-bd").value||null;
+    p.age=$("#ep-age").value===""?null:Math.max(5,Math.min(120,+$("#ep-age").value||0));
+    p.sign=$("#ep-sign").value; p.goal=goal;
+    try{ await window.F1TFB.saveProfile(p); }catch(e){}
+    if(p.accountName && !S.guest){ try{ await window.F1TFB.setDisplayName(p.accountName); }catch(e){} }
+    closeModal(); renderProfile(); toast(t("saved"));
+  };
+  $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
+}
 function openInfo(title, body){
   $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
     <h2>${title}</h2><p style="font-weight:500;color:var(--ink2);line-height:1.6;margin-bottom:16px">${body}</p>
+    <button class="btn-lime" id="m-ok">${t("done")}</button></div></div>`;
+  $("#m-ok").onclick=closeModal; $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
+}
+function openRules(){
+  const secs=[1,2,3,4,5,6,7,8,9,10].map(i=>`
+    <div class="rr-sec"><b>${t("rr"+i+"t")}</b><p>${t("rr"+i+"b")}</p></div>`).join("");
+  $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal modal-tall"><div class="sheet-grip"></div>
+    <h2>${ic("doc",22)} ${t("rulesTitle")}</h2>
+    <div class="rr-body">${secs}</div>
+    <div class="rr-copy">${t("copyright")}</div>
     <button class="btn-lime" id="m-ok">${t("done")}</button></div></div>`;
   $("#m-ok").onclick=closeModal; $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
@@ -568,6 +781,66 @@ function openGoals(){
   $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
 function closeModal(){ $("#modal-root").innerHTML=""; }
+
+const BMI_CATKEY={underweight:"bmiUnder",healthy:"bmiHealthy",overweight:"bmiOver",obese:"bmiObese"};
+function zodiacSign(mo,da){
+  const S=["signCapricorn","signAquarius","signPisces","signAries","signTaurus","signGemini",
+           "signCancer","signLeo","signVirgo","signLibra","signScorpio","signSagittarius"];
+  const last=[19,18,20,19,20,20,22,22,22,22,21,21];
+  return S[da<=last[mo-1] ? mo-1 : mo%12];
+}
+function ageFrom(bd){
+  try{ const b=new Date(bd+"T00:00:00"), n=new Date();
+    let a=n.getFullYear()-b.getFullYear(); const m=n.getMonth()-b.getMonth();
+    if(m<0||(m===0&&n.getDate()<b.getDate())) a--; return a>0?a:null;
+  }catch(e){ return null; }
+}
+function fmtBD(bd){
+  try{ return new Date(bd+"T00:00:00").toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"}); }
+  catch(e){ return bd; }
+}
+/* ---------- COACH PLAN ---------- */
+function renderCoachCard(){
+  if(!window.F1T_COACH) return "";
+  const plan=window.F1T_COACH.plan(S.profile||{});
+  const td=window.F1T_COACH.today(plan);
+  const wname=td.key==="rest"?t("restDay"):t(td.key);
+  const n=plan.nutrition;
+  return `<div class="glass-card coach-card" id="coach-card">
+    <span class="cc-ico">${ic("activity",22)}</span>
+    <div class="cc-mid"><div class="cc-label">${t("coachPlan")}</div>
+      <b>${t("todayWorkout")}: ${wname}${td.mins?" · "+t("minutes",{n:td.mins}):""}</b>
+      <span>${t("carbs")||"Carbs"} ${n.carbs}g · ${t("protein")} ${n.protein}g · ${t("fat")} ${n.fat}g</span></div>
+    <span class="cc-go">›</span></div>`;
+}
+function openCoachPlan(){
+  const plan=window.F1T_COACH.plan(S.profile||{});
+  const n=plan.nutrition, b=plan.body;
+  const dows=[t("mon"),t("tue"),t("wed"),t("thu"),t("fri"),t("sat"),t("sun")];
+  const todayIdx=(new Date().getDay()+6)%7;
+  const bmiTxt=b.bmi?`${b.bmi.value.toFixed(1)} (${t(BMI_CATKEY[b.bmi.cat])})`:"--";
+  $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
+    <h2>${t("coachPlan")}</h2>
+    <div class="plan-sec"><div class="plan-head">${t("bodyStructure")}</div>
+      <div class="plan-row"><span>BMI</span><b>${bmiTxt}</b></div>
+      <div class="plan-row"><span>${t("healthyRange")}</span><b>${b.lo}–${b.hi} kg</b></div>
+      <div class="plan-row"><span>${t("targetWeight")}</span><b class="hl">${b.targetW} kg</b></div></div>
+    <div class="plan-sec"><div class="plan-head">${t("workoutSchedule")} · ${t(n.planKey)}</div>
+      ${plan.workouts.map((w,i)=>`<div class="plan-row ${i===todayIdx?"today":""}">
+        <span>${dows[i]}</span><b>${w.key==="rest"?t("restDay"):t(w.key)}</b>
+        <small>${w.mins?t("minutes",{n:w.mins}):"—"}</small></div>`).join("")}</div>
+    <div class="plan-sec"><div class="plan-head">${t("nutritionPlan")}</div>
+      <div class="plan-row"><span>${t("eatStyle")}</span><b>${t(n.style)}</b></div>
+      <div class="plan-row"><span>${t("protein")}</span><b>${n.protein}g</b></div>
+      <div class="plan-row"><span>${t("carbs")}</span><b class="hl">${n.carbs}g</b></div>
+      <div class="plan-row"><span>${t("fat")}</span><b>${n.fat}g</b></div>
+      <div class="plan-row"><span>${t("preWorkout")}</span><b>${n.preCarb}g ${t("carbs")}</b></div>
+      <div class="plan-row"><span>${t("postWorkout")}</span><b>${n.postProt}g ${t("protein")}</b></div>
+      <p class="plan-tip">${t("carbsWhy")}</p><p class="plan-tip">${t("proteinWhy")}</p></div>
+    <p class="coach-note">${t("coachNote")}</p>
+    <button class="btn-lime" id="cp-ok">${t("done")}</button></div></div>`;
+  $("#cp-ok").onclick=closeModal; $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
+}
 
 /* ---------- SHEET + LOGGING ---------- */
 function openSheet(){
@@ -633,7 +906,7 @@ function openWeight(){
     <h2>${ic("scale",22)} ${t("logWeight")}</h2>
     <div class="field"><label>${t("weight")} (${t("kg")})</label><input id="wt-v" type="number" inputmode="decimal" value="${S.profile.w||""}"></div>
     <button class="btn-lime" id="wt-save">${t("save")}</button></div></div>`;
-  $("#wt-save").onclick=async()=>{ const v=+$("#wt-v").value; if(v>0){ S.profile.w=v;
+  $("#wt-save").onclick=async()=>{ const v=+$("#wt-v").value; if(v>0){ S.profile.w=v; S.day.weight=v; saveDay();
     await window.F1TFB.saveProfile(S.profile); } closeModal(); toast(t("logged")); };
   $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
@@ -645,12 +918,48 @@ function openSteps(){
   $("#st-save").onclick=()=>{ S.day.steps=+$("#st-v").value||0; saveDay(); closeModal(); toast(t("logged")); renderHome(); };
   $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
-function downscalePhoto(file){
+/* ---------- customizable avatar ---------- */
+const AV_COLORS=["#22c55e","#aefe02","#16a34a","#e5484d","#1a1a1a"];
+function avatarHTML(p,extra){
+  p=p||{};
+  if(p.avatarImg) return `<div class="avatar ${extra||""}"><img class="avatar-img" src="${p.avatarImg}" alt=""></div>`;
+  const col=p.avatarColor||"#22c55e";
+  const ch=((p.name||"F")[0]||"F").toUpperCase();
+  const dark=col==="#aefe02"?"color:#0d0d0d;":"";
+  return `<div class="avatar ${extra||""}" style="background:${col};${dark}">${ch}</div>`;
+}
+function openAvatarSheet(){
+  const p=S.profile||{};
+  $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
+    <h2>${ic("user",22)} ${t("avatarPhoto")}</h2>
+    <div style="display:flex;justify-content:center;margin-bottom:8px"><div class="avatar-wrap" style="transform:scale(1.4);margin:12px">${avatarHTML(p)}</div></div>
+    <div class="av-colors">${AV_COLORS.map(c=>`<button data-c="${c}" class="${(p.avatarColor||"#22c55e")===c?"on":""}" style="background:${c}"></button>`).join("")}</div>
+    <div class="sheet-grid" style="margin-top:14px">
+      <button class="sheet-opt" id="av-take">${ic("camera",22)}${t("takePhoto")}</button>
+      <button class="sheet-opt" id="av-upload">${ic("upload",22)}${t("uploadPhoto")}</button>
+      ${p.avatarImg?`<button class="sheet-opt" id="av-remove">${ic("x",22)}${t("removePhoto")}</button>`:""}
+    </div>
+    <input type="file" id="av-file" accept="image/*" class="hidden">
+    <button class="btn-lime" id="m-ok" style="margin-top:14px">${t("done")}</button></div></div>`;
+  const save=async()=>{ await window.F1TFB.saveProfile(S.profile); openAvatarSheet(); renderProfile(); };
+  $$("#modal-root .av-colors button").forEach(b=>b.onclick=()=>{ S.profile.avatarColor=b.dataset.c; save(); });
+  $("#av-take").onclick=()=>{ const f=$("#av-file"); f.setAttribute("capture","user"); f.click(); };
+  $("#av-upload").onclick=()=>{ const f=$("#av-file"); f.removeAttribute("capture"); f.click(); };
+  $("#av-file").onchange=async e=>{
+    const file=e.target.files[0]; if(!file) return;
+    const url=await downscalePhoto(file,160);
+    if(url){ S.profile.avatarImg=url; await window.F1TFB.saveProfile(S.profile); }
+    openAvatarSheet(); renderProfile();
+  };
+  const rm=$("#av-remove"); if(rm) rm.onclick=()=>{ delete S.profile.avatarImg; save(); };
+  $("#m-ok").onclick=closeModal; $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
+}
+function downscalePhoto(file,maxSize){
   return new Promise(res=>{
     try{
       const img=new Image();
       img.onload=()=>{
-        const max=640; let w=img.width,h=img.height;
+        const max=maxSize||640; let w=img.width,h=img.height;
         if(w>max||h>max){ const r=Math.min(max/w,max/h); w=Math.round(w*r); h=Math.round(h*r); }
         const c=document.createElement("canvas"); c.width=w||1; c.height=h||1;
         c.getContext("2d").drawImage(img,0,0,c.width,c.height);
@@ -722,13 +1031,9 @@ function initNav(){
   $("#sheet-close").onclick=closeSheet;
   $("#sheet-backdrop").onclick=closeSheet;
   /* designed icons */
-  const tg={home:"home",stats:"chart",rewards:"trophy",profile:"user"};
+  const tg={home:"home",coach:"chat",stats:"chart",profile:"user"};
   $$("#tabbar .tab[data-goto] .t-ico").forEach(el=>{ el.innerHTML=ic(tg[el.closest(".tab").dataset.goto]||"home",22); });
   $("#tab-add .t-ico").innerHTML=ic("plus",30);
-  $("#home-cal").innerHTML=ic("calendar",19);
-  $("#home-bell").innerHTML=ic("bell",19)+'<span class="dot"></span>';
-  $("#home-cal").onclick=openDatePicker;
-  $("#home-bell").onclick=openNotif;
   $$(".page-head .back").forEach(b=>{ b.innerHTML=ic("chevL",22); });
   $$(".page-head .more").forEach(b=>{ b.innerHTML=ic("more",20); b.onclick=openWeekPick; });
 }

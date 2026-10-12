@@ -54,6 +54,10 @@ star:'<path fill="currentColor" d="M12 2.6l2.8 5.8 6.4.9-4.6 4.5 1.1 6.3-5.7-3-5
 user:'<circle fill="currentColor" cx="12" cy="7.8" r="4.4"/><path fill="currentColor" d="M4.8 20.2a7.4 7.4 0 0 1 14.4 0v.3a1.5 1.5 0 0 1-1.5 1.5H6.3a1.5 1.5 0 0 1-1.5-1.5z"/>',
 sync:'<path fill="currentColor" fill-rule="evenodd" d="M12 3a9 9 0 1 0 .1 0zm0 3.2a5.8 5.8 0 1 0-.1 0z"/><path fill="currentColor" d="M17.8 3.2h4.4a1 1 0 0 1 1 1v4.4a1 1 0 0 1-1.7.7l-4.4-4.4a1 1 0 0 1 .7-1.7z"/><path fill="currentColor" fill-opacity="0.45" d="M6.2 20.8H1.8a1 1 0 0 1-1-1v-4.4a1 1 0 0 1 1.7-.7l4.4 4.4a1 1 0 0 1-.7 1.7z"/>',
 camera:'<rect fill="currentColor" x="3" y="7.5" width="18" height="12.5" rx="3.5"/><path fill="currentColor" d="M8.6 7.5l1-2.3a1.5 1.5 0 0 1 1.4-1H13a1.5 1.5 0 0 1 1.4 1l1 2.3z"/><circle fill="currentColor" fill-opacity="0.45" cx="12" cy="13.5" r="4.3"/><circle fill="currentColor" cx="12" cy="13.5" r="2"/>',
+upload:'<path fill="currentColor" d="M12 2.5c.6 0 1 .4 1 1v8.7h3.1a1 1 0 0 1 .7 1.7l-4.1 4.1a1 1 0 0 1-1.4 0l-4.1-4.1a1 1 0 0 1 .7-1.7H11V3.5c0-.6.4-1 1-1z"/><path fill="currentColor" fill-opacity="0.45" d="M4 15h2.5v2.5H6a1 1 0 0 0-1 1V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1.5a1 1 0 0 0-1-1h-.5V15H20a1 1 0 0 1 1 1v4a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-4a1 1 0 0 1 1-1z"/>',
+chat:'<path fill="currentColor" d="M12 3C6.5 3 2 6.9 2 11.7c0 2.7 1.5 5.1 3.8 6.7L5 21.5l3.4-1.7c1.1.4 2.3.6 3.6.6 5.5 0 10-3.9 10-8.7S17.5 3 12 3z"/><circle fill="currentColor" fill-opacity="0.45" cx="8.5" cy="11.7" r="1.4"/><circle fill="currentColor" fill-opacity="0.45" cx="12" cy="11.7" r="1.4"/><circle fill="currentColor" fill-opacity="0.45" cx="15.5" cy="11.7" r="1.4"/>',
+send:'<path fill="currentColor" d="M21 3.6 3.4 10.3c-.7.3-.7 1.3.1 1.5l6.5 2 2.4 6.1c.3.7 1.2.8 1.7.2l6.5-14.7c.4-.9-.3-1.9-1.1-1.8z"/><path fill="currentColor" fill-opacity="0.45" d="M10.2 13.6 18.8 6.2l-7.2 7.6z"/>',
+doc:'<path fill="currentColor" d="M6 2.5h8L19 7.5V21.5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-18a1 1 0 0 1 1-1z"/><path fill="currentColor" fill-opacity="0.45" d="M8.5 11h7v2h-7zm0 4h7v2h-7zm0-8h3.5v2h-3.5z"/>',
 };
 window.F1T_ICONS = P;
 window.f1tIcon = function(name, size){
