@@ -11,7 +11,7 @@
 <title>F1T · Calorie Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
 <link rel="apple-touch-startup-image" href="assets/splash/splash-1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)">
@@ -82,6 +82,7 @@
         </button>
         <button id="auth-guest" class="link-btn" type="button" data-i18n="continueGuest">Continue as guest</button>
       </div>
+      <div class="empty-note profile-copy" data-i18n="copyright">© 2026 F1T. All rights reserved.</div>
     </div>
   </section>
 
@@ -128,6 +129,16 @@
     </div>
   </main>
 
+  <!-- COACH -->
+  <main id="view-coach" class="view">
+    <div class="page">
+      <header class="page-head">
+        <h1 data-i18n="coach">Coach</h1>
+      </header>
+      <div id="coach-body"></div>
+    </div>
+  </main>
+
   <!-- REWARDS -->
   <main id="view-rewards" class="view">
     <div class="page">
@@ -152,10 +163,10 @@
 
 <!-- TAB BAR -->
 <nav id="tabbar" class="hidden">
-  <button class="tab" data-goto="home" type="button"><span class="t-ico i-home"></span><em data-i18n="home">Home</em></button>
-  <button class="tab" data-goto="stats" type="button"><span class="t-ico i-chart"></span><em data-i18n="progress">Progress</em></button>
+  <button class="tab" data-goto="home" type="button"><span class="t-ico i-home"></span><em data-i18n="summary">Summary</em></button>
+  <button class="tab" data-goto="coach" type="button"><span class="t-ico i-chat"></span><em data-i18n="coach">Coach</em></button>
   <button class="tab fab" id="tab-add" type="button" aria-label="add"><span class="t-ico i-plus"></span></button>
-  <button class="tab" data-goto="rewards" type="button"><span class="t-ico i-trophy"></span><em data-i18n="rewards">Rewards</em></button>
+  <button class="tab" data-goto="stats" type="button"><span class="t-ico i-chart"></span><em data-i18n="progress">Progress</em></button>
   <button class="tab" data-goto="profile" type="button"><span class="t-ico i-user"></span><em data-i18n="profile">Profile</em></button>
 </nav>
 
@@ -175,6 +186,7 @@
 <script src="js/data.js"></script>
 <script src="js/icons.js"></script>
 <script src="js/analysis.js"></script>
+<script src="js/coach.js"></script>
 <script src="js/firebase.js"></script>
 <script src="js/app.js"></script>
 </body>
