@@ -133,7 +133,7 @@ input,select{font-family:var(--font)}
 .head-ico{display:flex;gap:10px}
 .ico-btn{width:44px;height:44px;border-radius:50%;background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--glass-brd);
   display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);position:relative;font-size:18px}
-.ico-btn .dot{position:absolute;top:11px;right:12px;width:8px;height:8px;border-radius:50%;background:#ff5b5b;border:2px solid var(--bgc)}
+.ico-btn .dot{position:absolute;top:11px;right:12px;width:8px;height:8px;border-radius:50%;background:#f04438;border:2px solid var(--bgc)}
 .page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .page-head h1{font-size:24px;font-weight:800;letter-spacing:-.5px}
 
@@ -172,7 +172,7 @@ input,select{font-family:var(--font)}
 .pill{font-size:12px;font-weight:800;padding:7px 14px;border-radius:999px}
 .pill.good{background:#d8f5a2;color:#3f6212}
 .pill.warn{background:#fde9c8;color:#9a5b00}
-.pill.bad{background:#ffd7dc;color:#b00020}
+.pill.bad{background:#ffe2e2;color:#b42318}
 .pill.info{background:#d3e9ff;color:#0b5cc0}
 .bmi-bar{height:10px;border-radius:99px;background:linear-gradient(90deg,#7cc7ff,#b8f04a 35%,#ffc53d 62%,#ff6b6b);position:relative;margin-bottom:8px}
 .bmi-bar i{position:absolute;top:-4px;width:4px;height:18px;border-radius:2px;background:#1c1c1e;box-shadow:0 0 0 2px #fff}
@@ -194,7 +194,7 @@ input,select{font-family:var(--font)}
 .insight.good{border-left-color:#7fc400}
 .insight.warn{border-left-color:#f5a623}
 .insight.info{border-left-color:#1d9bf0}
-.insight.bad{border-left-color:#e5486f}
+.insight.bad{border-left-color:#e63b30}
 .i-ico{width:34px;height:34px;border-radius:11px;background:var(--surface);display:flex;align-items:center;justify-content:center;flex:none;color:var(--ink)}
 .insight b{font-size:14px;font-weight:800;display:block;margin-bottom:3px}
 .insight p{font-size:13px;color:var(--ink2);font-weight:500;line-height:1.5;margin:0}
@@ -388,3 +388,16 @@ html[lang="my"] .badge b{line-height:1.7}
 button.ds-day{font-family:var(--font);cursor:pointer}
 #home-body .mini,#stats-body .stat-tile{cursor:pointer}
 .nt-dot-off{display:none!important}
+/* ===== app logo ===== */
+.app-logo{display:block;object-fit:cover}
+.logo-splash{width:96px;height:96px;border-radius:28px;box-shadow:0 14px 40px rgba(90,60,30,.25);margin-bottom:10px}
+.logo-auth{width:72px;height:72px;border-radius:22px;box-shadow:0 10px 30px rgba(90,60,30,.22);margin-bottom:8px}
+.logo-card{padding:18px;display:flex;align-items:center;gap:16px;margin-bottom:14px}
+.logo-profile{width:64px;height:64px;border-radius:18px;box-shadow:0 8px 24px rgba(90,60,30,.2);flex:none}
+.logo-card small{color:var(--ink2);font-weight:600}
+/* profile stats */
+.p-stats{display:flex;margin-bottom:14px;padding:18px 12px}
+.p-stats div{flex:1;text-align:center}
+.p-stats div+div{border-left:1px solid var(--divider)}
+.p-stats b{font-size:21px;font-weight:800;display:block;letter-spacing:-.5px}
+.p-stats small{font-size:12px;color:var(--ink2);font-weight:600}
