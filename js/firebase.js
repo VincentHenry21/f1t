@@ -60,8 +60,12 @@ window.F1TFB = (() => {
     if (ok && uid){ try{ const s = await db.collection("f1t_days").doc(uid+"_"+dateKey).get(); if(s.exists) return s.data(); }catch(e){} }
     return null;
   }
+  async function pullHealth(dateKey){
+    if (ok){ try{ const s = await db.collection("f1t_health").doc(dateKey).get(); if(s.exists) return s.data(); }catch(e){} }
+    return null;
+  }
 
   return { get ready(){return ok;}, get uid(){return uid;},
     onAuth, signUp, signIn, google, signOut,
-    saveProfile, loadProfile, pullProfile, loadDay, saveDay, pullDay, blankDay };
+    saveProfile, loadProfile, pullProfile, loadDay, saveDay, pullDay, pullHealth, blankDay };
 })();

@@ -11,6 +11,7 @@ const store = {
 };
 const I = () => window.F1T_I18N[S.lang] || window.F1T_I18N.en;
 const t = k => (I()[k] !== undefined ? I()[k] : (window.F1T_I18N.en[k] || k));
+const ic = (n,s) => window.f1tIcon(n, s || 20);
 
 const S = {
   lang: store.get("f1t_lang") || "en",
@@ -105,6 +106,7 @@ async function afterLogin(u){
 }
 async function enter(){
   if(!S.day){ await loadAll(); }
+  await loadHealth();
   if(!S.profile){ startOnboarding(); }
   else show("home");
 }
@@ -134,9 +136,9 @@ function renderOb(){
     $("#ob-next").onclick=()=>{ o.age=+$("#ob-age").value||18; o.h=+$("#ob-h").value||170; o.w=+$("#ob-w").value||65;
       o.sex=o.sex||"female"; S.obStep=2; renderOb(); };
   }else{
-    const goals=[["lose","🎯",t("lose"),t("loseS")],["maintain","⚖️",t("maintain"),t("maintainS")],["gain","💪",t("gain"),t("gainS")]];
+    const goals=[["lose","target",t("lose"),t("loseS")],["maintain","scale",t("maintain"),t("maintainS")],["gain","dumbbell",t("gain"),t("gainS")]];
     b.innerHTML=`<div class="glass-card ob-card"><h2>${t("ob3t")}</h2><p>${t("ob3p")}</p>
-      ${goals.map(g=>`<button class="goal-opt ${o.goal===g[0]?"on":""}" data-v="${g[0]}"><span class="g-ico">${g[1]}</span><span><b>${g[2]}</b><small>${g[3]}</small></span></button>`).join("")}
+      ${goals.map(g=>`<button class="goal-opt ${o.goal===g[0]?"on":""}" data-v="${g[0]}"><span class="g-ico">${ic(g[1],26)}</span><span><b>${g[2]}</b><small>${g[3]}</small></span></button>`).join("")}
       <div class="field" style="margin-top:14px"><label>${t("active")}</label><div class="seg" id="ob-act">
         <button data-v="1" class="${o.active?"on":""}">${t("yesActive")}</button>
         <button data-v="0" class="${!o.active?"on":""}">${t("noActive")}</button></div></div>
@@ -164,6 +166,37 @@ function renderOb(){
   }
 }
 
+/* ---------- APPLE HEALTH ---------- */
+function renderHealthCard(){
+  if(!S.user) return "";
+  const h=S.health;
+  if(!h){
+    return `<div class="glass-card health-card"><div class="h-top"><span class="h-ico">${ic("health",20)}</span><b>Apple Health</b></div>
+      <div class="h-setup">${t("healthSetup")}</div></div>`;
+  }
+  const km=(h.distanceM/1000).toFixed(1);
+  return `<div class="glass-card health-card"><div class="h-top"><span class="h-ico">${ic("health",20)}</span><b>Apple Health</b>
+      <span class="h-sync">${ic("sync",12)} ${h.syncedAt||""}</span></div>
+    <div class="h-row">
+      <div><b>${fmt(h.steps||0)}</b><small>${t("steps")}</small></div>
+      <div><b>${Math.round(h.activeKcal||0)}</b><small>${t("kcal")}</small></div>
+      <div><b>${km}</b><small>km</small></div>
+    </div>
+    ${h.steps&&!S.day.steps?`<button class="btn-glass full" id="use-health-steps">${t("useHealthSteps")}</button>`:""}
+  </div>`;
+}
+async function loadHealth(){
+  S.health=null;
+  if(!S.user || !window.F1TFB.ready) return;
+  try{
+    const doc=await window.F1TFB.pullHealth(S.dateKey);
+    if(doc&&doc.steps!=null){
+      S.health={steps:Math.round(doc.steps),activeKcal:doc.activeKcal||0,distanceM:doc.distanceM||0,
+        syncedAt:doc.updatedAt||""};
+    }
+  }catch(e){}
+}
+
 /* ---------- HOME ---------- */
 function greeting(){
   const h=yangonNow().getHours();
@@ -177,9 +210,9 @@ function renderHome(){
   const target=p.targetKcal||2000;
   const wk=dayKeys(7).filter(k=>{ const dd=k===S.dateKey?d:window.F1TFB.loadDay(k); return dd&&dd.kcal>0; }).length;
   const ringC=2*Math.PI*44, ringP=Math.min(1,wk/7);
-  const meals=[["breakfast","🍳"],["lunch","🍱"],["dinner","🌙"],["snacks","🍿"]];
+  const meals=["breakfast","lunch","dinner","snacks"];
   const mealKcal=m=> (d.meals[m]||[]).reduce((a,x)=>a+x.kcal,0);
-  const thumbs=m=> (d.meals[m]||[]).slice(0,3).map(x=>`<span>${x.ico||"🍽"}</span>`).join("");
+  const thumbs=m=> (d.meals[m]||[]).slice(0,3).map(x=>`<span>${ic(x.ic||"bowl",20)}</span>`).join("");
   // date strip: current week Mon..Sun
   const now=yangonNow(); const dow=(now.getDay()+6)%7;
   const mon=new Date(now); mon.setDate(mon.getDate()-dow);
@@ -190,9 +223,11 @@ function renderHome(){
     const isT=window.F1T_todayKey(dt)===S.dateKey;
     ds+=`<div class="ds-day ${isT?"today":""}"><span>${dows[i]}</span><b>${dt.getDate()}</b></div>`; }
   const cups=Math.floor(d.water/250);
+  const drops=Array.from({length:8},(_,i)=>`<i class="${i<Math.min(8,cups)?"on":""}">${ic("droplet",13)}</i>`).join("");
+  const healthCard = renderHealthCard();
   $("#home-body").innerHTML=`
     <div class="glass-card intake-card">
-      <div><div class="intake-top"><span class="zap">⚡</span>${t("dailyIntake")}</div>
+      <div><div class="intake-top"><span class="zap">${ic("zap",13)}</span>${t("dailyIntake")}</div>
         <h2>${t("weeklyProgress")}</h2>
         <div class="intake-sub">${fmt(d.kcal)} / ${fmt(target)} ${t("kcal")}</div>
         <div class="kcal-bar"><i style="width:${Math.min(100,Math.round(d.kcal/target*100))}%"></i></div>
@@ -202,22 +237,23 @@ function renderHome(){
         <div class="rv"><b>${wk}</b><small>${t("days")}</small></div></div>
     </div>
     <div class="duo">
-      <div class="glass-card mini"><div class="m-top"><span>${t("stepsToWalk")}</span><span class="m-ico">👣</span></div>
-        <div class="m-big">${fmt(d.steps)} <small>${t("steps")}</small></div></div>
-      <div class="glass-card mini"><div class="m-top"><span>${t("drinkWater")}</span><span class="m-ico">💧</span></div>
+      <div class="glass-card mini"><div class="m-top"><span>${t("stepsToWalk")}</span><span class="m-ico">${ic("footprints",18)}</span></div>
+        <div class="m-big">${fmt(d.steps)} <small>${t("steps")}</small></div>${S.health&&S.health.steps?`<div class="sync-note">${ic("sync",12)} ${t("fromHealth")}</div>`:""}</div>
+      <div class="glass-card mini"><div class="m-top"><span>${t("drinkWater")}</span><span class="m-ico">${ic("droplet",18)}</span></div>
         <div class="m-big">${cups} <small>${t("glass")}</small></div>
-        <div class="water-drops">${"💧".repeat(Math.min(8,cups))||""}${"▫️".repeat(Math.max(0,8-Math.min(8,cups)))}</div></div>
+        <div class="water-drops">${drops}</div></div>
     </div>
+    ${healthCard}
     <div class="glass-card datestrip"><div class="ds-head"><b>${months[mon.getMonth()]} ${mon.getFullYear()}</b>
       <div class="ds-nav"><button id="ds-prev">‹</button><button id="ds-next">›</button></div></div>
       <div class="ds-row">${ds}</div></div>
-    ${meals.map(m=>{ const k=mealKcal(m[0]); const items=d.meals[m[0]]||[];
-      return `<div class="glass-card meal"><div class="m-info"><b>${t(m[0])}</b>
-        <div class="m-kcal">🔥 ${k? fmt(k)+" "+t("kcal") : "0 "+t("kcal")}</div></div>
-        <div class="m-thumbs">${thumbs(m[0])}</div>
-        <button class="add-btn" data-meal="${m[0]}">+</button></div>`; }).join("")}`;
+    ${meals.map(m=>{ const k=mealKcal(m);
+      return `<div class="glass-card meal"><div class="m-info"><b>${t(m)}</b>
+        <div class="m-kcal">${ic("flame",14)} ${k? fmt(k)+" "+t("kcal") : "0 "+t("kcal")}</div></div>
+        <div class="m-thumbs">${thumbs(m)}</div>
+        <button class="add-btn" data-meal="${m}">+</button></div>`; }).join("")}`;
   $$("#home-body .add-btn").forEach(b=>b.onclick=()=>openMealPicker(b.dataset.meal));
-  $("#home-cal").innerHTML="▦";
+  const uh=$("#use-health-steps"); if(uh) uh.onclick=()=>{ S.day.steps=S.health.steps; saveDay(); renderHome(); toast(t("logged")); };
 }
 
 /* ---------- STATS ---------- */
@@ -232,25 +268,26 @@ function renderStats(){
       <div class="bar ${v>=target*0.9?"fill":""}" style="height:${Math.max(6,Math.round(v/max*150))}px"></div>
       <span class="dl">${dowOf(keys[i])}</span></div>`; }).join("");
   const d=S.day; const cups=Math.floor(d.water/250);
+  const drops=Array.from({length:8},(_,i)=>`<i class="${i<Math.min(8,cups)?"on":""}">${ic("droplet",13)}</i>`).join("");
   const spark=Array.from({length:14},()=>4+Math.round(Math.random()*36));
   $("#stats-body").innerHTML=`
     <div class="glass-card stat-hero"><div class="s-label">${t("calories")}</div>
       <div class="s-nums"><b>${fmt(d.kcal)}</b><small>${t("kcal")}</small><span class="tgt">${t("target")}: ${fmt(target)} ${t("kcal")}</span></div>
       <div class="bars">${bars}</div></div>
     <div class="stat-grid">
-      <div class="glass-card stat-tile"><div class="t-top"><span class="t-ico">🏃</span>${t("exercise")}</div>
+      <div class="glass-card stat-tile"><div class="t-top"><span class="t-ico">${ic("activity",15)}</span>${t("exercise")}</div>
         <div class="spark">${spark.map(h=>`<i style="height:${h}px"></i>`).join("")}</div>
         <div class="t-big">${(d.exercise||0).toFixed(1)} <small>${t("hours")}</small></div></div>
-      <div class="glass-card stat-tile"><div class="t-top"><span class="t-ico">❤️</span>${t("bpm")}</div>
+      <div class="glass-card stat-tile"><div class="t-top"><span class="t-ico">${ic("heart",15)}</span>${t("bpm")}</div>
         <svg class="pulse" width="100%" height="44" viewBox="0 0 120 44" preserveAspectRatio="none">
           <polyline points="0,26 14,26 20,26 24,10 28,40 32,26 46,26 52,18 56,34 60,26 78,26 84,8 90,42 96,26 120,26"
             fill="none" stroke="#e5486f" stroke-width="2.5" stroke-linecap="round"/></svg>
         <div class="t-big">${d.bpm||86} <small>${t("bpm")}</small></div></div>
-      <div class="glass-card stat-tile"><div class="t-top"><span class="t-ico">⚖️</span>${t("weight")}</div>
+      <div class="glass-card stat-tile"><div class="t-top"><span class="t-ico">${ic("scale",15)}</span>${t("weight")}</div>
         <div class="t-big">${p.w||"--"} <small>${t("kg")}</small></div></div>
-      <div class="glass-card stat-tile"><div class="t-top"><span class="t-ico">💧</span>${t("water")}</div>
+      <div class="glass-card stat-tile"><div class="t-top"><span class="t-ico">${ic("droplet",15)}</span>${t("water")}</div>
         <div class="t-big">${cups} <small>${t("cups")}</small></div>
-        <div class="drop-row">${"💧".repeat(Math.min(8,cups))}</div></div>
+        <div class="drop-row">${drops}</div></div>
     </div>`;
 }
 
@@ -263,21 +300,21 @@ function badges(){
       const dd=k===S.dateKey?d:window.F1TFB.loadDay(k);
       if(dd&&dd.meals&&dd.meals.breakfast&&dd.meals.breakfast.length) s++; else break; } return s; })();
   return [
-    {n:t("b1n"),d:t("b1d"),ico:"📝",won:st>=1},
-    {n:t("b2n"),d:t("b2d"),ico:"🔥",won:st>=3},
-    {n:t("b3n"),d:t("b3d"),ico:"💧",won:Math.floor(d.water/250)>=8},
-    {n:t("b4n"),d:t("b4d"),ico:"👣",won:d.steps>=10000},
-    {n:t("b5n"),d:t("b5d"),ico:"🎯",won:d.kcal>0&&Math.abs(d.kcal-target)/target<=0.1},
-    {n:t("b6n"),d:t("b6d"),ico:"🌅",won:bfastStreak>=5},
+    {n:t("b1n"),d:t("b1d"),ic:"pencil",won:st>=1},
+    {n:t("b2n"),d:t("b2d"),ic:"flame",won:st>=3},
+    {n:t("b3n"),d:t("b3d"),ic:"droplet",won:Math.floor(d.water/250)>=8},
+    {n:t("b4n"),d:t("b4d"),ic:"footprints",won:d.steps>=10000},
+    {n:t("b5n"),d:t("b5d"),ic:"target",won:d.kcal>0&&Math.abs(d.kcal-target)/target<=0.1},
+    {n:t("b6n"),d:t("b6d"),ic:"sunrise",won:bfastStreak>=5},
   ];
 }
 function renderRewards(){
   const st=streak(); const bs=badges();
   $("#rewards-body").innerHTML=`
-    <div class="glass-card streak-card"><div class="flame">🔥</div><b>${st}</b><span>${t("dayStreak")}</span>
+    <div class="glass-card streak-card"><div class="flame">${ic("flame",44)}</div><b>${st}</b><span>${t("dayStreak")}</span>
       <div style="margin-top:8px;font-size:13px">${t("keepGoing")}</div></div>
     <div class="badge-grid">${bs.map(b=>`<div class="glass-card badge ${b.won?"won":""}">
-      <span class="b-ico">${b.won?b.ico:"🔒"}</span><b>${b.n}</b><small>${b.d}</small></div>`).join("")}</div>`;
+      <span class="b-ico">${ic(b.won?b.ic:"lock",30)}</span><b>${b.n}</b><small>${b.d}</small></div>`).join("")}</div>`;
 }
 
 /* ---------- MENU ---------- */
@@ -288,10 +325,10 @@ function renderMenu(){
     <div class="glass-card prof-card"><div class="avatar">${((p.name||"F")[0]||"F").toUpperCase()}</div>
       <div><b>${p.name||t("guest")}</b><small>${t("signedInAs")}: ${who}</small></div></div>
     <div class="menu-list">
-      <button class="glass-card menu-row" id="m-lang"><span class="mr-ico">🌐</span>${t("language")}<span class="mr-sub">${t("langName")}</span><span class="chev">›</span></button>
-      <button class="glass-card menu-row" id="m-goals"><span class="mr-ico">🎯</span>${t("editGoals")}<span class="mr-sub">${fmt(p.targetKcal||2000)} ${t("kcal")}</span><span class="chev">›</span></button>
-      <button class="glass-card menu-row" id="m-install"><span class="mr-ico">📲</span>${t("installApp")}<span class="chev">›</span></button>
-      <button class="glass-card menu-row danger" id="m-logout"><span class="mr-ico">🚪</span>${t("logout")}</button>
+      <button class="glass-card menu-row" id="m-lang"><span class="mr-ico">${ic("globe",20)}</span>${t("language")}<span class="mr-sub">${t("langName")}</span><span class="chev">›</span></button>
+      <button class="glass-card menu-row" id="m-goals"><span class="mr-ico">${ic("target",20)}</span>${t("editGoals")}<span class="mr-sub">${fmt(p.targetKcal||2000)} ${t("kcal")}</span><span class="chev">›</span></button>
+      <button class="glass-card menu-row" id="m-install"><span class="mr-ico">${ic("smartphone",20)}</span>${t("installApp")}<span class="chev">›</span></button>
+      <button class="glass-card menu-row danger" id="m-logout"><span class="mr-ico">${ic("logout",20)}</span>${t("logout")}</button>
     </div>
     <div class="empty-note">${t("version")}</div>`;
   $("#m-lang").onclick=()=>{ S.lang=S.lang==="en"?"my":"en"; store.set("f1t_lang",S.lang);
@@ -323,8 +360,8 @@ function closeModal(){ $("#modal-root").innerHTML=""; }
 
 /* ---------- SHEET + LOGGING ---------- */
 function openSheet(){
-  const opts=[["meal","🍽",t("logMeal")],["water","💧",t("logWater")],["weight","⚖️",t("logWeight")],["steps","👣",t("logSteps")]];
-  $("#sheet-grid").innerHTML=opts.map(o=>`<button class="sheet-opt" data-k="${o[0]}"><span>${o[1]}</span>${o[2]}</button>`).join("");
+  const opts=[["meal","utensils",t("logMeal")],["water","droplet",t("logWater")],["weight","scale",t("logWeight")],["steps","footprints",t("logSteps")]];
+  $("#sheet-grid").innerHTML=opts.map(o=>`<button class="sheet-opt" data-k="${o[0]}"><span>${ic(o[1],26)}</span>${o[2]}</button>`).join("");
   $("#sheet").classList.remove("hidden"); $("#sheet-backdrop").classList.remove("hidden");
   $$("#sheet-grid .sheet-opt").forEach(b=>b.onclick=()=>{ closeSheet();
     const k=b.dataset.k;
@@ -341,7 +378,7 @@ function openMealPicker(meal){
   const renderList=q=>{
     const list=window.F1T_FOODS.filter(f=>!q||foodName(f).toLowerCase().includes(q.toLowerCase())).slice(0,30);
     $("#food-list").innerHTML=list.map(f=>`<button class="food-row" data-id="${f.id}">
-      <span class="f-ico">${f.ico}</span><span class="f-info"><b>${foodName(f)}</b><small>P ${f.p}g · C ${f.c}g · F ${f.f}g</small></span>
+      <span class="f-ico">${ic(f.ic,22)}</span><span class="f-info"><b>${foodName(f)}</b><small>P ${f.p}g · C ${f.c}g · F ${f.f}g</small></span>
       <span class="f-kcal">${f.kcal}</span></button>`).join("") ||
       `<div class="empty-note">${t("noMeals")}</div>`;
     $$("#food-list .food-row").forEach(b=>b.onclick=()=>addFood(meal, window.F1T_FOODS.find(f=>f.id===b.dataset.id)));
@@ -358,41 +395,41 @@ function openMealPicker(meal){
   renderList("");
   $("#food-q").oninput=e=>renderList(e.target.value);
   $("#cf-add").onclick=()=>{ const n=$("#cf-name").value.trim(), k=+$("#cf-kcal").value||0;
-    if(!n||!k) return; addFood(meal,{id:"c"+Date.now(),en:n,my:n,kcal:k,p:0,c:0,f:0,ico:"🍽"}); };
+    if(!n||!k) return; addFood(meal,{id:"c"+Date.now(),en:n,my:n,kcal:k,p:0,c:0,f:0,ic:"utensils"}); };
   $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
 function addFood(meal,f){
-  S.day.meals[meal].push({id:f.id,name:f.en,name_my:f.my,kcal:f.kcal,p:f.p,c:f.c,f:f.f,ico:f.ico,at:Date.now()});
+  S.day.meals[meal].push({id:f.id,name:f.en,name_my:f.my,kcal:f.kcal,p:f.p,c:f.c,f:f.f,ic:f.ic||"utensils",at:Date.now()});
   S.day.kcal+=f.kcal; S.day.p+=f.p; S.day.c+=f.c; S.day.f+=f.f;
-  saveDay(); closeModal(); toast("🔥 "+t("logged")); renderHome();
+  saveDay(); closeModal(); toast(t("logged")); renderHome();
 }
 function openWater(){
   let cups=Math.floor(S.day.water/250);
   const draw=()=>{ $("#w-n").textContent=cups; };
   $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
-    <h2>💧 ${t("logWater")}</h2><p style="text-align:center;color:var(--ink2);font-weight:600">${t("oneCup")}</p>
+    <h2>${ic("droplet",22)} ${t("logWater")}</h2><p style="text-align:center;color:var(--ink2);font-weight:600">${t("oneCup")}</p>
     <div class="stepper"><button id="w-m">−</button><b id="w-n">${cups}</b><button id="w-p">+</button></div>
     <button class="btn-lime" id="w-save">${t("save")}</button></div></div>`;
   $("#w-m").onclick=()=>{ cups=Math.max(0,cups-1); draw(); };
   $("#w-p").onclick=()=>{ cups=Math.min(20,cups+1); draw(); };
-  $("#w-save").onclick=()=>{ S.day.water=cups*250; saveDay(); closeModal(); toast("💧 "+t("logged")); renderHome(); };
+  $("#w-save").onclick=()=>{ S.day.water=cups*250; saveDay(); closeModal(); toast(t("logged")); renderHome(); };
   $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
 function openWeight(){
   $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
-    <h2>⚖️ ${t("logWeight")}</h2>
+    <h2>${ic("scale",22)} ${t("logWeight")}</h2>
     <div class="field"><label>${t("weight")} (${t("kg")})</label><input id="wt-v" type="number" inputmode="decimal" value="${S.profile.w||""}"></div>
     <button class="btn-lime" id="wt-save">${t("save")}</button></div></div>`;
   $("#wt-save").onclick=async()=>{ const v=+$("#wt-v").value; if(v>0){ S.profile.w=v;
-    await window.F1TFB.saveProfile(S.profile); } closeModal(); toast("⚖️ "+t("logged")); };
+    await window.F1TFB.saveProfile(S.profile); } closeModal(); toast(t("logged")); };
   $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
 function openSteps(){
   $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
-    <h2>👣 ${t("logSteps")}</h2>
+    <h2>${ic("footprints",22)} ${t("logSteps")}</h2>
     <div class="field"><label>${t("stepsToWalk")}</label><input id="st-v" type="number" inputmode="numeric" value="${S.day.steps||""}"></div>
     <button class="btn-lime" id="st-save">${t("save")}</button></div></div>`;
-  $("#st-save").onclick=()=>{ S.day.steps=+$("#st-v").value||0; saveDay(); closeModal(); toast("👣 "+t("logged")); renderHome(); };
+  $("#st-save").onclick=()=>{ S.day.steps=+$("#st-v").value||0; saveDay(); closeModal(); toast(t("logged")); renderHome(); };
   $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
 
@@ -402,6 +439,14 @@ function initNav(){
   $("#tab-add").onclick=openSheet;
   $("#sheet-close").onclick=closeSheet;
   $("#sheet-backdrop").onclick=closeSheet;
+  /* designed icons */
+  const tg={home:"home",stats:"chart",rewards:"trophy",menu:"menu"};
+  $$("#tabbar .tab[data-goto] .t-ico").forEach(el=>{ el.innerHTML=ic(tg[el.closest(".tab").dataset.goto]||"home",22); });
+  $("#tab-add .t-ico").innerHTML=ic("plus",30);
+  $("#home-cal").innerHTML=ic("calendar",19);
+  $("#home-bell").innerHTML=ic("bell",19)+'<span class="dot"></span>';
+  $$(".page-head .back").forEach(b=>{ b.innerHTML=ic("chevL",22); });
+  $$(".page-head .more").forEach(b=>{ b.innerHTML=ic("more",20); });
 }
 async function boot(){
   applyI18n(); initAuth(); initNav();
@@ -420,4 +465,5 @@ async function boot(){
   if(navigator.serviceWorker && navigator.serviceWorker.register){ try{ navigator.serviceWorker.register("sw.js").catch(()=>{}); }catch(e){} }
 }
 document.addEventListener("DOMContentLoaded", boot);
+window.F1T={state:S,show,applyLang:applyI18n,t,ic:(n,s)=>window.f1tIcon(n,s)};
 })();

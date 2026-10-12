@@ -45,6 +45,9 @@ en: {
   del:"Delete", confirmLogout:"Log out of F1T?",
   targetUpdated:"Target updated",
   langName:"English",
+  fromHealth:"from iPhone",
+  healthSetup:"Sign in and publish the sync to pull your iPhone steps here.",
+  useHealthSteps:"Use iPhone steps",
 },
 my: {
   tagline:"ခြေရာခံ။ အားဖြည့်။ ပြောင်းလဲ။",
@@ -91,5 +94,8 @@ my: {
   del:"ဖျက်ရန်", confirmLogout:"F1T မှ ထွက်မှာလား?",
   targetUpdated:"ရည်မှန်းချက် ပြင်ဆင်ပြီးပါပြီ",
   langName:"မြန်မာ",
+  fromHealth:"iPhone မှ",
+  healthSetup:"သင့် iPhone ခြေလှမ်းများ ဤနေရာတွင် ပေါ်လာရန် ဝင်ရောက်ပြီး sync ကို ဖွင့်ပါ။",
+  useHealthSteps:"iPhone ခြေလှမ်းများကို သုံးရန်",
 }};
 window.F1T_I18N_MY_MONTHS = true;
