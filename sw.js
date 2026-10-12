@@ -1,5 +1,5 @@
 /* F1T service worker · cache-first app shell */
-const CACHE = "f1t-v9";
+const CACHE = "f1t-v9.1";
 const SHELL = ["./","./index.html","./manifest.webmanifest","./css/style.css",
   "./js/i18n.js","./js/data.js","./js/icons.js","./js/analysis.js","./js/coach.js","./js/workout.js","./js/env.js","./js/firebase.js","./js/app.js"];
 self.addEventListener("install", e=>{
