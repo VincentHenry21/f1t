@@ -27,7 +27,12 @@ window.F1TFB = (() => {
   async function signIn(email,pass){ const c = await auth.signInWithEmailAndPassword(email,pass); return c.user; }
   async function google(){
     const p = new firebase.auth.GoogleAuthProvider();
-    const c = await auth.signInWithPopup(p); return c.user;
+    await auth.signInWithRedirect(p); // returns after redirect via redirectResult()
+  }
+  async function redirectResult(){
+    if(!ok) return null;
+    const r = await auth.getRedirectResult();
+    return (r && r.user) ? r.user : null;
   }
   async function signOut(){ if(ok) await auth.signOut(); uid=null; }
 
@@ -66,6 +71,6 @@ window.F1TFB = (() => {
   }
 
   return { get ready(){return ok;}, get uid(){return uid;},
-    onAuth, signUp, signIn, google, signOut,
+    onAuth, signUp, signIn, google, redirectResult, signOut,
     saveProfile, loadProfile, pullProfile, loadDay, saveDay, pullDay, pullHealth, blankDay };
 })();

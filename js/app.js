@@ -35,20 +35,20 @@ function show(view){
   S.view=view;
   $$(".view").forEach(v=>v.classList.remove("active"));
   $("#view-"+view).classList.add("active");
-  $("#tabbar").classList.toggle("hidden", !["home","stats","rewards","menu"].includes(view));
+  $("#tabbar").classList.toggle("hidden", !["home","stats","rewards","profile"].includes(view));
   $$("#tabbar .tab[data-goto]").forEach(b=>b.classList.toggle("on", b.dataset.goto===view));
   window.scrollTo(0,0);
   if(view==="home") renderHome();
   if(view==="stats") renderStats();
   if(view==="rewards") renderRewards();
-  if(view==="menu") renderMenu();
+  if(view==="profile") renderProfile();
 }
 function applyI18n(){
   document.documentElement.lang = S.lang==="my"?"my":"en";
   $$("[data-i18n]").forEach(el=>{ el.textContent = t(el.dataset.i18n); });
   $$("[data-i18n-ph]").forEach(el=>{ el.placeholder = t(el.dataset.i18nPh); });
   $("#auth-lang").textContent = S.lang==="en" ? "မြန်မာ" : "English";
-  if(["home","stats","rewards","menu"].includes(S.view)) show(S.view);
+  if(["home","stats","rewards","profile"].includes(S.view)) show(S.view);
 }
 function fmt(n){ return n.toLocaleString("en-US"); }
 
@@ -89,12 +89,21 @@ function initAuth(){
   $("#auth-lang").onclick=()=>{ S.lang = S.lang==="en"?"my":"en"; store.set("f1t_lang",S.lang); applyI18n(); };
   $("#auth-go").onclick=doAuth;
   $("#auth-google").onclick=async()=>{
-    try{ const u=await window.F1TFB.google(); afterLogin(u); }
-    catch(e){ authErr(t("authFail")); }
+    $("#auth-err").classList.add("hidden");
+    try{ await window.F1TFB.google(); /* redirects to Google, returns via boot() */ }
+    catch(e){ authErr(googleErrMsg(e)); }
   };
   $("#auth-guest").onclick=()=>{ S.guest=true; store.set("f1t_guest","1"); enter(); };
 }
 function authErr(m){ const e=$("#auth-err"); e.textContent=m; e.classList.remove("hidden"); }
+function googleErrMsg(e){
+  const c=(e&&e.code)||"";
+  if(c==="auth/unauthorized-domain") return t("errDomain");
+  if(c==="auth/operation-not-allowed") return t("errGoogleOff");
+  if(c==="auth/network-request-failed") return t("errNetwork");
+  if(c==="auth/popup-blocked"||c==="auth/popup-closed-by-user") return t("authFail");
+  return t("authFail");
+}
 async function doAuth(){
   const em=$("#auth-email").value.trim(), pw=$("#auth-pass").value;
   if(!em||!pw){ authErr(t("needEmailPass")); return; }
@@ -424,7 +433,7 @@ function renderStats(){
       <div class="glass-card stat-tile" id="st-bpm"><div class="t-top"><span class="t-ico">${ic("heart",15)}</span>${t("bpm")}</div>
         <svg class="pulse" width="100%" height="44" viewBox="0 0 120 44" preserveAspectRatio="none">
           <polyline points="0,26 14,26 20,26 24,10 28,40 32,26 46,26 52,18 56,34 60,26 78,26 84,8 90,42 96,26 120,26"
-            fill="none" stroke="#e5486f" stroke-width="2.5" stroke-linecap="round"/></svg>
+            fill="none" stroke="#e63b30" stroke-width="2.5" stroke-linecap="round"/></svg>
         <div class="t-big">${d.bpm?d.bpm:"--"} <small>${t("bpm")}</small></div></div>
       <div class="glass-card stat-tile" id="st-weight"><div class="t-top"><span class="t-ico">${ic("scale",15)}</span>${t("weight")}</div>
         <div class="t-big">${p.w||"--"} <small>${t("kg")}</small></div></div>
@@ -465,12 +474,20 @@ function renderRewards(){
 }
 
 /* ---------- MENU ---------- */
-function renderMenu(){
+function renderProfile(){
   const p=S.profile||{};
   const who = S.user ? (S.user.displayName||S.user.email) : (S.guest? t("guest") : t("notSignedIn"));
-  $("#menu-body").innerHTML=`
+  const A=window.F1T_ANALYSIS, bmi=A?A.bmi(p.h,p.w):null;
+  let st=0; try{ st=streak(); }catch(e){}
+  $("#profile-body").innerHTML=`
+    <div class="glass-card logo-card"><img class="app-logo logo-profile" src="assets/icons/icon-192.png" alt="F1T">
+      <div><div class="logo-md">F1<span>T</span></div><small>${t("tagline")}</small></div></div>
     <div class="glass-card prof-card"><div class="avatar">${((p.name||"F")[0]||"F").toUpperCase()}</div>
       <div><b>${p.name||t("guest")}</b><small>${t("signedInAs")}: ${who}</small></div></div>
+    <div class="glass-card p-stats">
+      <div><b>${bmi?bmi.value.toFixed(1):"--"}</b><small>${t("bmi")}</small></div>
+      <div><b>${fmt(p.targetKcal||2000)}</b><small>${t("kcal")}${t("perDay")}</small></div>
+      <div><b>${st}</b><small>${t("dayStreak")}</small></div></div>
     <div class="menu-list">
       <button class="glass-card menu-row" id="m-lang"><span class="mr-ico">${ic("globe",20)}</span><span class="mr-t">${t("language")}</span><span class="mr-sub">${t("langName")}</span><span class="chev">›</span></button>
       <button class="glass-card menu-row" id="m-goals"><span class="mr-ico">${ic("target",20)}</span><span class="mr-t">${t("editGoals")}</span><span class="mr-sub">${fmt(p.targetKcal||2000)} ${t("kcal")}</span><span class="chev">›</span></button>
@@ -505,7 +522,7 @@ function openGoals(){
     <button class="btn-lime" id="g-save">${t("save")}</button></div></div>`;
   $("#g-save").onclick=async()=>{ S.profile.targetKcal=+$("#g-kcal").value||2000;
     if($("#g-w").value) S.profile.w=+$("#g-w").value;
-    await window.F1TFB.saveProfile(S.profile); closeModal(); toast(t("targetUpdated")); renderMenu(); };
+    await window.F1TFB.saveProfile(S.profile); closeModal(); toast(t("targetUpdated")); renderProfile(); };
   $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
 function closeModal(){ $("#modal-root").innerHTML=""; }
@@ -617,7 +634,7 @@ function initNav(){
   $("#sheet-close").onclick=closeSheet;
   $("#sheet-backdrop").onclick=closeSheet;
   /* designed icons */
-  const tg={home:"home",stats:"chart",rewards:"trophy",menu:"menu"};
+  const tg={home:"home",stats:"chart",rewards:"trophy",profile:"user"};
   $$("#tabbar .tab[data-goto] .t-ico").forEach(el=>{ el.innerHTML=ic(tg[el.closest(".tab").dataset.goto]||"home",22); });
   $("#tab-add .t-ico").innerHTML=ic("plus",30);
   $("#home-cal").innerHTML=ic("calendar",19);
@@ -629,17 +646,20 @@ function initNav(){
 }
 async function boot(){
   applyTheme(); applyI18n(); initAuth(); initNav();
+  let redirErr=null;
+  try{ await window.F1TFB.redirectResult(); }catch(e){ redirErr=e; }
   setTimeout(async()=>{
     let landed=false;
     window.F1TFB.onAuth(async u=>{
       if(landed) return; landed=true;
       S.user=u||null;
       if(u || S.guest){ await loadAll(); enter(); }
-      else show("auth");
+      else { show("auth"); if(redirErr) authErr(googleErrMsg(redirErr)); }
     });
     // fallback if firebase unavailable
     setTimeout(async()=>{ if(!landed){ landed=true;
-      if(S.guest){ await loadAll(); enter(); } else show("auth"); } }, 3500);
+      if(S.guest){ await loadAll(); enter(); }
+      else { show("auth"); if(redirErr) authErr(googleErrMsg(redirErr)); } } }, 3500);
   }, 900);
   if(navigator.serviceWorker && navigator.serviceWorker.register){ try{ navigator.serviceWorker.register("sw.js").catch(()=>{}); }catch(e){} }
 }

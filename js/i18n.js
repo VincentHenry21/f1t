@@ -97,6 +97,10 @@ en: {
   pickDate:"Pick a date", weekView:"Week view",
   lastWeek:"Last week", twoWeeksAgo:"2 weeks ago",
   logExercise:"Log exercise", logBpm:"Log heart rate", heartRate:"Heart rate",
+  profile:"Profile", perDay:"/day",
+  errDomain:"Google sign-in is not set up for this app yet. Please use email login.",
+  errGoogleOff:"Google sign-in is turned off for this app.",
+  errNetwork:"Network error. Check your connection and try again.",
 },
 my: {
   tagline:"ခြေရာခံ။ အားဖြည့်။ ပြောင်းလဲ။",
@@ -195,5 +199,9 @@ my: {
   pickDate:"ရက်ရွေးပါ", weekView:"အပတ်စဉ် ရွေးပါ",
   lastWeek:"ပြီးခဲ့သောအပတ်", twoWeeksAgo:"၂ ပတ်က",
   logExercise:"လေ့ကျင့်ခန်း မှတ်ရန်", logBpm:"နှလုံးခုန်နှုန်း မှတ်ရန်", heartRate:"နှလုံးခုန်နှုန်း",
+  profile:"ပရိုဖိုင်", perDay:"/ရက်",
+  errDomain:"ဤအက်ပ်အတွက် Google ဖြင့် ဝင်ရောက်ခြင်း မဖွင့်ရသေးပါ။ အီးမေးလ်ဖြင့် ဝင်ပါ။",
+  errGoogleOff:"Google ဖြင့် ဝင်ရောက်ခြင်း ပိတ်ထားပါသည်။",
+  errNetwork:"အင်တာနက် ချိတ်ဆက်မှု စစ်ဆေးပြီး ထပ်ကြိုးစားပါ။",
 }};
 window.F1T_I18N_MY_MONTHS = true;
