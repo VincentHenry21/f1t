@@ -110,9 +110,30 @@ window.F1TFB = (() => {
     }catch(e){}
     return n;
   }
+  /* ---- premium claims + scoreboard (real database) ---- */
+  async function saveClaim(claim){
+    // local mirror always
+    try{
+      const cs=JSON.parse(localStorage.getItem("f1t_claims")||"[]");
+      cs.push(claim); localStorage.setItem("f1t_claims",JSON.stringify(cs));
+    }catch(e){}
+    if(ok){ try{ await db.collection("f1t_premium_claims").doc(claim.id).set(claim); return "cloud"; }catch(e){} }
+    return "local";
+  }
+  async function boardSet(entry){
+    try{ localStorage.setItem("f1t_board_me",JSON.stringify(entry)); }catch(e){}
+    if(ok){ try{ await db.collection("f1t_leaderboard").doc(entry.id).set(entry,{merge:true}); }catch(e){} }
+  }
+  async function boardTop(limit){
+    if(ok){ try{
+      const s=await db.collection("f1t_leaderboard").orderBy("score","desc").limit(limit||50).get();
+      const out=[]; s.forEach(d=>out.push(d.data())); if(out.length) return out;
+    }catch(e){} }
+    try{ const me=JSON.parse(localStorage.getItem("f1t_board_me")||"null"); return me?[me]:[]; }catch(e){ return []; }
+  }
   return { get ready(){return ok;}, get uid(){return uid;},
     onAuth, signUp, signIn, google, redirectResult, signOut, setDisplayName,
     saveProfile, loadProfile, pullProfile, loadDay, saveDay, pullDay, pullHealth, blankDay,
-    pushLocalToCloud,
+    pushLocalToCloud, saveClaim, boardSet, boardTop,
     subDay, subProfile };
 })();
