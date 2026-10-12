@@ -44,6 +44,7 @@ function show(view){
   if(view==="settings") renderSettings();
   if(view==="rewards") renderRewards();
   if(view==="profile") renderProfile();
+  initTilt($("#view-"+view));
 }
 function applyI18n(){
   document.documentElement.lang = S.lang==="my"?"my":"en";
@@ -255,6 +256,7 @@ function notifItems(){
     if(won>seen) items.push({icon:"trophy",tone:"good",title:t("ntBadgeTitle"),body:t("ntBadgeBody",{n:won-seen})});
   }catch(e){}
   try{ items.push({icon:"zap",tone:"info",title:t("tipTitle"),body:t("tip"+window.F1T_ANALYSIS.tipOfDay(S.dateKey))}); }catch(e){}
+  try{ (S._envRem||[]).forEach(r=>items.push({icon:r.icon,tone:"info",title:t("env_title"),body:t(r.key)})); }catch(e){}
   return items;
 }
 function notifSig(items){ return S.dateKey+":"+items.map(i=>i.title).join("|"); }
@@ -395,7 +397,8 @@ function renderHome(){
     spark=`<svg class="w-spark" viewBox="0 0 100 38" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="#aefe02" stroke-width="2.5" stroke-linecap="round"/></svg>`;
   }
   $("#home-body").innerHTML=`
-    <div class="score-hero"><div class="score-num">${score.toFixed(1)}</div><div class="score-label">${t("dailyScore")}</div></div>
+    <div class="score-hero depth-3d tilt"><div class="score-num">${score.toFixed(1)}</div><div class="score-label">${t("dailyScore")}</div></div>
+    <div id="env-mount"></div>
     <div class="glass-card rings-card">${rings.map(r=>`
       <div class="mring"><div class="mring-top">${ringSVG(r.pct,r.color)}<b>${Math.round(Math.min(1,Math.max(0,r.pct))*100)}%</b></div>
       <div class="mlab">${r.lab}</div><div class="mval">${r.val} ${r.unit}</div></div>`).join("")}</div>
@@ -423,6 +426,55 @@ function renderHome(){
   const cc=$("#coach-card"); if(cc) cc.onclick=openCoachPlan;
   const wl=$("#w-log"); if(wl) wl.onclick=openWeight;
   refreshBell();
+  renderEnv();
+}
+
+/* ---------- environment: real-time weather + adaptive recommendations ---------- */
+async function renderEnv(){
+  const mount=$("#env-mount"); if(!mount) return;
+  const E=window.F1T_ENV; if(!E) return;
+  const d=S.day||{}, p=S.profile||{};
+  try{
+    const geo=await E.getLocation();
+    if(!geo){
+      mount.innerHTML=`<button class="glass-card env-wrap depth-3d" id="env-enable" style="width:100%;text-align:left">
+        <span class="env-top"><span class="env-ic">${ic("pin",24)}</span>
+        <span class="env-tx"><b>${t("env_title")}</b><small>${t("env_tap")}</small></span></span></button>`;
+      const b=$("#env-enable");
+      if(b) b.onclick=async()=>{ const g=await E.getLocation(true);
+        if(g) renderEnv(); else toast(t("env_denied")); };
+      return;
+    }
+    const wx=await E.getWeather(geo.lat, geo.lon);
+    if(!wx){
+      mount.innerHTML=`<div class="glass-card env-wrap depth-3d"><span class="env-top"><span class="env-ic">${ic("cloudSun",24)}</span>
+        <span class="env-tx"><b>${t("env_title")}</b><small>${t("env_na")}</small></span></span></div>`;
+      return;
+    }
+    const name=await E.placeName(geo.lat, geo.lon);
+    const cond=E.conditionOf(wx.weather_code);
+    const bpm=d.bpm||null;
+    let bmi=null; try{ if(p.w&&p.h) bmi=p.w/((p.h/100)*(p.h/100)); }catch(e){}
+    const recs=E.buildRecs(wx, bpm, {bmi:bmi, goal:p.goal});
+    const A=window.F1T_ANALYSIS;
+    const wTarget=A?A.waterTarget(p):Math.round((p.w||65)*35);
+    let hadWo=false;
+    try{ hadWo=(d.exercise||0)>0 || (window.F1T_WORKOUT&&window.F1T_WORKOUT.workoutsSince(1).length>0); }catch(e){}
+    S._envRem=E.checkReminders({wx:wx, waterMl:d.water||0, waterTarget:wTarget, hadWorkout:hadWo});
+    const wTxt=recs.workout.slice(0,2).map(k=>t(k)).join(" · ");
+    const eTxt=recs.eat.slice(0,1).map(k=>t(k)).join("");
+    mount.innerHTML=`<div class="glass-card env-wrap depth-3d tilt" id="env-card">
+      <div class="env-top"><span class="env-ic">${ic(E.condIcon(cond),26)}</span>
+        <span class="env-tx"><b>${(name||t("env_title")).replace(/</g,"&lt;")}</b>
+        <small>${t("wx_"+cond)}${wx.relative_humidity_2m!=null?" · "+wx.relative_humidity_2m+"%":""}</small></span>
+        <span class="env-temp">${Math.round(wx.temperature_2m)}°</span></div>
+      ${(wTxt||eTxt)?`<div class="env-rec">
+        ${wTxt?`<div>${ic("dumbbell",15)}<span>${wTxt}</span></div>`:""}
+        ${eTxt?`<div>${ic("utensils",15)}<span>${eTxt}</span></div>`:""}
+      </div>`:""}</div>`;
+    initTilt(mount);
+    refreshBell();
+  }catch(e){ /* weather is best-effort; never break home */ }
 }
 
 /* ---------- AI COACH ---------- */
@@ -664,9 +716,9 @@ function renderSettings(){
         <span class="seg-sm theme-seg"><button data-th="light" class="${S.theme!=="dark"?"on":""}">${t("lightMode")}</button><button data-th="dark" class="${S.theme==="dark"?"on":""}">${t("darkMode")}</button></span></div>
       <button class="menu-row" id="m-lang"><span class="mr-ico">${ic("globe",20)}</span><span class="mr-t">${t("language")}</span><span class="mr-sub">${t("langName")}</span><span class="chev">›</span></button>
       <div class="set-sub">${t("permissions")}</div>
-      ${["camera","motion","cal"].map(k=>`
-      <button class="menu-row perm-row" data-perm="${k}"><span class="mr-ico">${ic(k==="camera"?"camera":k==="motion"?"activity":"calendar",20)}</span>
-        <span class="mr-t">${t(k==="camera"?"allowCamera":k==="motion"?"allowMotion":"allowCalendar")}</span>
+      ${["camera","motion","loc","cal"].map(k=>`
+      <button class="menu-row perm-row" data-perm="${k}"><span class="mr-ico">${ic(k==="camera"?"camera":k==="motion"?"activity":k==="loc"?"pin":"calendar",20)}</span>
+        <span class="mr-t">${t(k==="camera"?"allowCamera":k==="motion"?"allowMotion":k==="loc"?"perm_location":"allowCalendar")}</span>
         <span class="pill ${permState()[k]?"good":""}">${permState()[k]?t("allowed"):t("notAllowed")}</span></button>`).join("")}
       <button class="menu-row" id="m-export"><span class="mr-ico">${ic("calendar",20)}</span><span class="mr-t">${t("exportCal")}</span><span class="chev">›</span></button>
       <button class="menu-row" id="m-terms"><span class="mr-ico">${ic("doc",20)}</span><span class="mr-t">${t("rulesTitle")}</span><span class="chev">›</span></button>
@@ -695,7 +747,7 @@ function renderSettings(){
     $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
   };
 }
-function permState(){ try{ return Object.assign({camera:false,motion:false,cal:false}, JSON.parse(store.get("f1t_perm")||"{}")); }catch(e){ return {camera:false,motion:false,cal:false}; } }
+function permState(){ try{ return Object.assign({camera:false,motion:false,cal:false,loc:false}, JSON.parse(store.get("f1t_perm")||"{}")); }catch(e){ return {camera:false,motion:false,cal:false,loc:false}; } }
 async function requestPerm(kind){
   let ok=false;
   try{
@@ -704,10 +756,12 @@ async function requestPerm(kind){
       if(typeof DeviceMotionEvent!=="undefined" && DeviceMotionEvent.requestPermission){ ok=(await DeviceMotionEvent.requestPermission())==="granted"; }
       else ok=true;
     }
+    else if(kind==="loc"){ const g=await window.F1T_ENV.getLocation(true); ok=!!g; }
     else if(kind==="cal"){ ok=!permState().cal; }
   }catch(e){ ok=false; }
   const ps=permState(); ps[kind]=ok; store.set("f1t_perm", JSON.stringify(ps));
-  renderProfile(); toast(ok?t("allowed"):t("notAllowed"));
+  if($("#settings-body .perm-row")) renderSettings(); else renderProfile();
+  toast(ok?t("allowed"):t("notAllowed"));
 }
 function setLang(L){
   S.lang=L; store.set("f1t_lang",L); document.documentElement.lang=L;
@@ -910,27 +964,35 @@ function openMealPicker(meal){
 function addFood(meal,f){
   S.day.meals[meal].push({id:f.id,name:f.en,name_my:f.my,kcal:f.kcal,p:f.p,c:f.c,f:f.f,ic:f.ic||"utensils",at:Date.now()});
   S.day.kcal+=f.kcal; S.day.p+=f.p; S.day.c+=f.c; S.day.f+=f.f;
-  saveDay(); closeModal(); toast(t("logged")); renderHome();
+  saveDay(); closeModal(); successPop(); toast(t("logged")); renderHome();
 }
 function openWater(){
   let cups=Math.floor(S.day.water/250);
-  const draw=()=>{ $("#w-n").textContent=cups; };
   $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
-    <h2>${ic("droplet",22)} ${t("logWater")}</h2><p style="text-align:center;color:var(--ink2);font-weight:600">${t("oneCup")}</p>
-    <div class="stepper"><button id="w-m">−</button><b id="w-n">${cups}</b><button id="w-p">+</button></div>
+    <h2>${ic("droplet",22)} ${t("logWater")}</h2>
+    <div class="gslider-val"><b id="w-n">${cups}</b> <small>${t("cups")}</small></div>
+    <div class="gslider-row" id="w-slider"></div>
+    <p class="gslider-cap">${t("oneCup")}</p>
     <button class="btn-lime" id="w-save">${t("save")}</button></div></div>`;
-  $("#w-m").onclick=()=>{ cups=Math.max(0,cups-1); draw(); };
-  $("#w-p").onclick=()=>{ cups=Math.min(20,cups+1); draw(); };
-  $("#w-save").onclick=()=>{ S.day.water=cups*250; saveDay(); closeModal(); toast(t("logged")); renderHome(); };
+  initGlassSlider($("#w-slider"),{min:0,max:20,step:1,value:cups,label:t("logWater"),
+    display:v=>{ cups=v; $("#w-n").textContent=v; }});
+  $("#w-save").onclick=()=>{ S.day.water=cups*250; saveDay(); closeModal(); successPop(); toast(t("logged")); renderHome(); };
   $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
 function openWeight(){
+  const startW=S.profile.w||70;
   $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
     <h2>${ic("scale",22)} ${t("logWeight")}</h2>
+    <div class="gslider-val"><b id="wt-big">${startW}</b> <small>${t("kg")}</small></div>
+    <div class="gslider-row" id="wt-slider"></div>
     <div class="field"><label>${t("weight")} (${t("kg")})</label><input id="wt-v" type="number" inputmode="decimal" value="${S.profile.w||""}"></div>
     <button class="btn-lime" id="wt-save">${t("save")}</button></div></div>`;
+  const sl=initGlassSlider($("#wt-slider"),{min:30,max:150,step:.5,value:startW,label:t("logWeight"),
+    display:v=>{ $("#wt-big").textContent=v; const i=$("#wt-v"); if(document.activeElement!==i) i.value=v; }});
+  $("#wt-v").addEventListener("input",e=>{ const v=parseFloat(e.target.value);
+    if(v>=30&&v<=150){ sl.set(v); $("#wt-big").textContent=v; } });
   $("#wt-save").onclick=async()=>{ const v=+$("#wt-v").value; if(v>0){ S.profile.w=v; S.day.weight=v; saveDay();
-    await window.F1TFB.saveProfile(S.profile); } closeModal(); toast(t("logged")); };
+    await window.F1TFB.saveProfile(S.profile); } closeModal(); successPop(); toast(t("logged")); };
   $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
 function openSteps(){
@@ -938,7 +1000,7 @@ function openSteps(){
     <h2>${ic("footprints",22)} ${t("logSteps")}</h2>
     <div class="field"><label>${t("stepsToWalk")}</label><input id="st-v" type="number" inputmode="numeric" value="${S.day.steps||""}"></div>
     <button class="btn-lime" id="st-save">${t("save")}</button></div></div>`;
-  $("#st-save").onclick=()=>{ S.day.steps=+$("#st-v").value||0; saveDay(); closeModal(); toast(t("logged")); renderHome(); };
+  $("#st-save").onclick=()=>{ S.day.steps=+$("#st-v").value||0; saveDay(); closeModal(); successPop(); toast(t("logged")); renderHome(); };
   $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
 /* ---------- customizable avatar ---------- */
@@ -1018,20 +1080,20 @@ function openCamera(){
     const n=$("#cam-name").value.trim()||t("takePhoto"), k=+$("#cam-kcal").value||0;
     if(!k||!photo) return;
     S.day.meals[meal].push({id:"p"+Date.now(),name:n,name_my:n,kcal:k,p:0,c:0,f:0,ic:"camera",photo,at:Date.now()});
-    S.day.kcal+=k; saveDay(); closeModal(); toast(t("logged")); renderHome();
+    S.day.kcal+=k; saveDay(); closeModal(); successPop(); toast(t("logged")); renderHome();
   };
   $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
 function openExercise(){
   let h=S.day.exercise||0;
-  const draw=()=>{ $("#ex-n").textContent=h.toFixed(1); };
   $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
-    <h2>${ic("activity",22)} ${t("logExercise")}</h2><p style="text-align:center;color:var(--ink2);font-weight:600">${t("hours")}</p>
-    <div class="stepper"><button id="ex-m">−</button><b id="ex-n">${h.toFixed(1)}</b><button id="ex-p">+</button></div>
+    <h2>${ic("activity",22)} ${t("logExercise")}</h2>
+    <div class="gslider-val"><b id="ex-n">${h.toFixed(1)}</b> <small>${t("hours")}</small></div>
+    <div class="gslider-row" id="ex-slider"></div>
     <button class="btn-lime" id="ex-save">${t("save")}</button></div></div>`;
-  $("#ex-m").onclick=()=>{ h=Math.max(0,Math.round((h-0.5)*2)/2); draw(); };
-  $("#ex-p").onclick=()=>{ h=Math.min(24,Math.round((h+0.5)*2)/2); draw(); };
-  $("#ex-save").onclick=()=>{ S.day.exercise=h; saveDay(); closeModal(); toast(t("logged")); show(S.view); };
+  initGlassSlider($("#ex-slider"),{min:0,max:24,step:.5,value:h,label:t("logExercise"),
+    display:v=>{ h=v; $("#ex-n").textContent=v.toFixed(1); }});
+  $("#ex-save").onclick=()=>{ S.day.exercise=h; saveDay(); closeModal(); successPop(); toast(t("logged")); show(S.view); };
   $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
 function openBpm(){
@@ -1043,7 +1105,7 @@ function openBpm(){
     <button class="btn-lime" id="bp-save">${t("save")}</button></div></div>`;
   $("#bp-m").onclick=()=>{ v=Math.max(40,v-1); draw(); };
   $("#bp-p").onclick=()=>{ v=Math.min(220,v+1); draw(); };
-  $("#bp-save").onclick=()=>{ S.day.bpm=v; saveDay(); closeModal(); toast(t("logged")); show(S.view); };
+  $("#bp-save").onclick=()=>{ S.day.bpm=v; saveDay(); closeModal(); successPop(); toast(t("logged")); show(S.view); };
   $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
 
@@ -1087,13 +1149,18 @@ const WO = () => window.F1T_WORKOUT;
 
 /* ---------- hub: start workout or quick log ---------- */
 function openWorkoutHub(){
+  const rs=S.restSec||45;
   $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
     <h2>${ic("dumbbell",22)} ${t("workout")}</h2>
     <button class="wo-hub" id="wo-start"><span class="wo-hub-ic">${ic("play",26)}</span>
       <span class="wo-hub-tx"><b>${t("startWorkout")}</b><small>${t("startWorkoutSub")}</small></span><span class="chev">›</span></button>
     <button class="wo-hub" id="wo-quick"><span class="wo-hub-ic">${ic("clock",26)}</span>
       <span class="wo-hub-tx"><b>${t("quickLog")}</b><small>${t("quickLogSub")}</small></span><span class="chev">›</span></button>
+    <div class="gslider-val" style="font-size:26px"><b id="rs-n">${rs}</b> <small>s · ${t("rest")}</small></div>
+    <div class="gslider-row" id="rs-slider"></div>
     <button class="btn-glass full" id="wo-cancel">${t("cancel")}</button></div></div>`;
+  initGlassSlider($("#rs-slider"),{min:15,max:180,step:15,value:rs,red:true,label:t("rest"),
+    display:v=>{ S.restSec=v; $("#rs-n").textContent=v; }});
   $("#wo-start").onclick=openMusclePicker;
   $("#wo-quick").onclick=()=>{ closeModal(); openExercise(); };
   $("#wo-cancel").onclick=closeModal;
@@ -1200,7 +1267,7 @@ function renderActiveWorkout(){
     WO_SESS.exercises[+inp.dataset.x].sets[+inp.dataset.s][inp.dataset.f]=inp.value; });
   $$(".wo-setdone").forEach(b=>b.onclick=()=>{
     const ex=WO_SESS.exercises[+b.dataset.x], set=ex.sets[+b.dataset.s];
-    set.done=!set.done; renderActiveWorkout(); if(set.done) openRestTimer(45); });
+    set.done=!set.done; renderActiveWorkout(); if(set.done) openRestTimer(S.restSec||45); });
   $$(".wo-addset").forEach(b=>b.onclick=()=>{ WO_SESS.exercises[+b.dataset.x].sets.push({kg:"",reps:"",done:false}); renderActiveWorkout(); });
   $$(".wo-rmex").forEach(b=>b.onclick=()=>{ WO_SESS.exercises.splice(+b.dataset.x,1); renderActiveWorkout(); });
   $("#wo-pause").onclick=()=>{ const s2=WO_SESS;
@@ -1270,7 +1337,7 @@ function finishWorkout(){
     <div class="glass-card stat-tile" style="margin-top:12px"><div class="t-top">${ic("scale",20)} ${t("totalVolume")}</div><div class="t-big">${fmt(Math.round(vol))}<small> kg</small></div></div>
     <div class="glass-card stat-tile" style="margin-top:12px"><div class="t-top">${ic("zap",20)} ${t("calories")}</div><div class="t-big">${fmt(w.kcal)}<small> kcal</small></div></div>
     <button class="btn-lime" id="wo-ok" style="margin-top:16px">${t("done")}</button></div></div>`;
-  $("#wo-ok").onclick=()=>{ closeModal(); toast(t("workoutSaved")); show(S.view); };
+  $("#wo-ok").onclick=()=>{ closeModal(); successPop(); toast(t("workoutSaved")); show(S.view); };
   $("#mback").onclick=e=>{ if(e.target.id==="mback"){ closeModal(); show(S.view); } };
 }
 
@@ -1299,21 +1366,199 @@ function renderWorkoutStats(){
     <div class="seg-sm wo-segmain"><button data-st="nutrition">${t("nutrition")}</button><button data-st="workouts" class="on">${t("workouts")}</button></div>
     <div class="seg-sm wo-range">${["week","month","year","all"].map(r=>`<button data-r="${r}" class="${r===range?"on":""}">${t("rng_"+r)}</button>`).join("")}</div>
     <div class="stat-grid">
-      <div class="glass-card stat-tile"><div class="t-top">${ic("dumbbell",20)} ${t("workouts")}</div><div class="t-big">${st.count}</div></div>
-      <div class="glass-card stat-tile"><div class="t-top">${ic("clock",20)} ${t("totalTime")}</div><div class="t-big">${st.minutes}<small> ${t("min")}</small></div></div>
+      <div class="glass-card stat-tile xcard-src" data-kind="workouts"><div class="t-top">${ic("dumbbell",20)} ${t("workouts")}</div><div class="t-big">${st.count}</div></div>
+      <div class="glass-card stat-tile xcard-src" data-kind="minutes"><div class="t-top">${ic("clock",20)} ${t("totalTime")}</div><div class="t-big">${st.minutes}<small> ${t("min")}</small></div></div>
     </div>
-    <div class="glass-card stat-tile" style="margin-top:12px"><div class="t-top">${ic("scale",20)} ${t("totalVolume")}</div><div class="t-big">${fmt(st.volume)}<small> kg</small></div></div>
+    <div class="glass-card stat-tile xcard-src" data-kind="volume" style="margin-top:12px"><div class="t-top">${ic("scale",20)} ${t("totalVolume")}</div><div class="t-big">${fmt(st.volume)}<small> kg</small></div></div>
     <div class="streak-pill" style="margin:14px auto">${ic("flame",18)}<b>${ws}</b><span>${t("weekStreak")}</span></div>
-    <div class="glass-card level-card"><div class="lc-label">${t("yourLevel")}</div>
+    <div class="glass-card level-card depth-3d tilt"><div class="lc-label">${t("yourLevel")}</div>
       <div class="lc-level">${t("level_"+lp.level)}</div>
       <div class="lc-barwrap"><div class="lc-bar"><i style="width:${lp.pct}%"></i></div>
         <small>${lp.next?t("nextLevel",{n:lp.next}):t("maxLevel")}</small></div>
       <div class="lc-bodies">${W.bodySVG(trained,"front")}${W.bodySVG(trained,"back")}</div>
-      <div class="lc-legend">${["gold","silver","bronze","wood"].map(l=>`<span><i class="ldot l-${l}"></i>${t("level_"+l)}</span>`).join("")}</div></div>
+      <div class="lc-legend">${["elite","pro","athlete","contender","rookie"].map(l=>`<span><i class="ldot l-${l}"></i>${t("level_"+l)}</span>`).join("")}</div></div>
     <div class="glass-card cal-card">${woMonthCal()}</div>
     ${st.count?"":`<div class="empty-note">${t("noWorkouts")}</div>`}`;
   $$(".wo-segmain button").forEach(b=>b.onclick=()=>{ S.statsTab=b.dataset.st; renderStats(); });
   $$(".wo-range button").forEach(b=>b.onclick=()=>{ S.woRange=b.dataset.r; renderWorkoutStats(); });
+  $$("#stats-body .xcard-src").forEach(c=>c.onclick=()=>openWoStatDetail(c.dataset.kind, c));
 }
+
+
+/* ================= v9 · iOS design: glass slider + 3D tilt ================= */
+
+/* Liquid-glass slider. mount: element to fill. opt: {min,max,step,value,red,display,onInput} */
+function initGlassSlider(mount, opt){
+  mount.innerHTML=`<div class="gslider" role="slider" tabindex="0" aria-valuemin="${opt.min}" aria-valuemax="${opt.max}" aria-label="${opt.label||"slider"}">
+    <div class="gslider-fill${opt.red?" red":""}"></div><div class="gslider-thumb"></div></div>`;
+  const el=mount.firstChild, fill=el.querySelector(".gslider-fill"), thumb=el.querySelector(".gslider-thumb");
+  let val=opt.value;
+  const fix=v=>Math.round(v*1000)/1000;
+  function render(){
+    const pct=(val-opt.min)/(opt.max-opt.min)*100;
+    fill.style.width=pct+"%";
+    thumb.style.left=`calc(${pct}% - 21px)`;
+    el.setAttribute("aria-valuenow",val);
+    if(opt.display) opt.display(val);
+  }
+  function commit(nv){
+    nv=fix(Math.round(nv/opt.step)*opt.step);
+    nv=Math.max(opt.min,Math.min(opt.max,nv));
+    if(nv!==val){ val=nv; render(); opt.onInput&&opt.onInput(nv); }
+  }
+  function fromX(x){
+    const r=el.getBoundingClientRect();
+    commit(opt.min+((x-r.left)/r.width)*(opt.max-opt.min));
+  }
+  el.addEventListener("pointerdown",e=>{
+    e.preventDefault();
+    try{ el.setPointerCapture(e.pointerId); }catch(_){}
+    fromX(e.clientX);
+    const mv=ev=>fromX(ev.clientX);
+    el.addEventListener("pointermove",mv);
+    const done=()=>el.removeEventListener("pointermove",mv);
+    el.addEventListener("pointerup",done,{once:true});
+    el.addEventListener("pointercancel",done,{once:true});
+  });
+  el.addEventListener("keydown",e=>{
+    let d=0;
+    if(e.key==="ArrowRight"||e.key==="ArrowUp") d=opt.step;
+    else if(e.key==="ArrowLeft"||e.key==="ArrowDown") d=-opt.step;
+    else if(e.key==="Home"){ commit(opt.min); e.preventDefault(); return; }
+    else if(e.key==="End"){ commit(opt.max); e.preventDefault(); return; }
+    else return;
+    commit(fix(val+d)); e.preventDefault();
+  });
+  render();
+  return { get:()=>val, set:v=>commit(v) };
+}
+
+/* 3D tilt on hero cards (fine pointers only; CSS gates it) */
+function initTilt(scope){
+  if(!window.matchMedia||!matchMedia("(hover:hover) and (pointer:fine)").matches) return;
+  (scope||document).querySelectorAll(".tilt").forEach(card=>{
+    if(card._tilt) return; card._tilt=true;
+    card.addEventListener("pointermove",e=>{
+      const r=card.getBoundingClientRect();
+      const rx=((e.clientY-r.top)/r.height-.5)*-7;
+      const ry=((e.clientX-r.left)/r.width-.5)*9;
+      card.style.transform=`perspective(900px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) translateZ(0)`;
+    });
+    card.addEventListener("pointerleave",()=>{ card.style.transform=""; });
+  });
+}
+
+/* ================= v9 · Lift-style animations: expandable cards, count-up, success pop ================= */
+
+/* animated number count-up */
+function countUp(el, to, dur, format){
+  dur=dur||900; format=format||(v=>fmt(Math.round(v)));
+  const t0=performance.now();
+  function f(now){
+    const p=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-p,3);
+    el.textContent=format(to*e);
+    if(p<1) requestAnimationFrame(f); else el.textContent=format(to);
+  }
+  requestAnimationFrame(f);
+}
+
+/* expand a card into a detail sheet (FLIP zoom from its rect) */
+function expandCard(src, html){
+  const r=src.getBoundingClientRect();
+  const back=document.createElement("div"); back.className="xcard-back";
+  const card=document.createElement("div"); card.className="xcard";
+  card.innerHTML=`<button class="xcard-x" aria-label="close">×</button><div class="xcard-in">${html}</div>`;
+  const W=Math.min(480,window.innerWidth), H=window.innerHeight;
+  const tw=Math.min(W-24,452), th=Math.min(H*0.74,600);
+  const tx=(W-tw)/2, ty=Math.max(56,(H-th)/2-30);
+  card.style.left=tx+"px"; card.style.top=ty+"px";
+  card.style.width=tw+"px"; card.style.height=th+"px";
+  const sx=Math.max(.05,r.width/tw), sy=Math.max(.05,r.height/th);
+  const dx=r.left-tx, dy=r.top-ty;
+  const from=`translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px) scale(${sx.toFixed(3)},${sy.toFixed(3)})`;
+  card.style.transform=from;
+  document.body.append(back,card);
+  const prevOverflow=document.body.style.overflow;
+  document.body.style.overflow="hidden";
+  const inner=card.querySelector(".xcard-in");
+  inner.style.opacity="0";
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    back.classList.add("on");
+    card.style.transition="transform .55s cubic-bezier(.32,.72,.24,1)";
+    card.style.transform="translate(0px,0px) scale(1,1)";
+    inner.style.transition="opacity .32s ease .16s"; inner.style.opacity="1";
+  }));
+  let closed=false;
+  function close(){
+    if(closed) return; closed=true;
+    inner.style.transition="opacity .16s ease"; inner.style.opacity="0";
+    card.style.transition="transform .45s cubic-bezier(.32,.72,.24,1)";
+    card.style.transform=from;
+    back.classList.remove("on");
+    setTimeout(()=>{ back.remove(); card.remove(); document.body.style.overflow=prevOverflow; },480);
+  }
+  back.onclick=close;
+  card.querySelector(".xcard-x").onclick=close;
+  card.addEventListener("keydown",e=>{ if(e.key==="Escape") close(); });
+  return {close, card, inner};
+}
+
+/* glowing success check pop on log saves */
+function successPop(){
+  const d=document.createElement("div"); d.className="spop";
+  d.innerHTML=`<div class="ck">${ic("check",44)}</div>`;
+  document.body.appendChild(d);
+  setTimeout(()=>{ d.classList.add("out"); setTimeout(()=>d.remove(),350); },700);
+}
+
+/* ---- workout stat detail sheets ---- */
+function woVolOne(w){
+  return (w.exercises||[]).reduce((a,e)=>a+(e.sets||[]).reduce((b,s)=>b+(+s.kg||0)*(+s.reps||0),0),0);
+}
+function openWoStatDetail(kind, src){
+  const W=WO(), range=S.woRange||"month";
+  const st=W.rangeStats(range);
+  const all=W.loadAll();
+  let big, label, sub, sec;
+  if(kind==="workouts"){
+    big=st.count; label=t("workouts");
+    sub=`${st.minutes} ${t("min")} · ${fmt(st.volume)} kg`;
+    const byD={}; W.workoutsSince(30).forEach(w=>{ byD[w.date]=1; });
+    let dots="";
+    for(let i=29;i>=0;i--){
+      const d=new Date(); d.setDate(d.getDate()-i);
+      const k=W.dateKey(d.getTime());
+      dots+=`<i class="${byD[k]?"on":""}${i===0?" today":""}" style="animation-delay:${(29-i)*20}ms"></i>`;
+    }
+    sec=`<div class="xc-sec"><h4>${t("xd_last30")}</h4><div class="xc-dots">${dots}</div></div>`;
+  }else{
+    const isMin=kind==="minutes";
+    const weeks=[];
+    const now=new Date();
+    for(let i=7;i>=0;i--){
+      const end=new Date(now); end.setDate(end.getDate()-i*7); end.setHours(23,59,59,999);
+      const start=new Date(end); start.setDate(start.getDate()-6); start.setHours(0,0,0,0);
+      const ws=all.filter(w=>w.ts>=start.getTime()&&w.ts<=end.getTime());
+      weeks.push({lab:`${start.getDate()}/${start.getMonth()+1}`,
+        val:isMin?Math.round(ws.reduce((a,w)=>a+(w.durationMin||0),0)):Math.round(ws.reduce((a,w)=>a+woVolOne(w),0))});
+    }
+    const mx=Math.max(1,...weeks.map(x=>x.val));
+    big=isMin?st.minutes:st.volume; label=isMin?t("totalTime"):t("totalVolume");
+    sub=`${st.count} ${t("workouts")} · ${t("xd_avg")} ${fmt(Math.round(big/Math.max(1,weeks.filter(w=>w.val>0).length||1)))}${isMin?" "+t("min"):" kg"}`;
+    sec=`<div class="xc-sec"><h4>${t("xd_byWeek")}</h4><div class="xc-bars">${weeks.map((w,i)=>
+      `<div class="xc-bcol"><div class="b" style="height:${Math.max(5,Math.round(w.val/mx*104))}px;animation-delay:${i*55}ms"></div><div class="blab">${w.lab}</div></div>`).join("")}</div></div>`;
+  }
+  const ex=expandCard(src,`
+    <div class="xc-big" id="xc-big">0</div>
+    <div class="xc-label">${label}</div>
+    <div class="xc-sub">${sub}</div>${sec}
+    <div class="xc-substats">
+      <div class="ss"><b>${st.count}</b><small>${t("workouts")}</small></div>
+      <div class="ss"><b>${st.minutes}</b><small>${t("min")}</small></div>
+      <div class="ss"><b>${fmt(st.volume)}</b><small>kg</small></div>
+    </div>`);
+  countUp(ex.card.querySelector("#xc-big"), big, 950, v=>fmt(Math.round(v)));
+}
+
 
 })();

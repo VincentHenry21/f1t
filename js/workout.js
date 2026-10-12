@@ -120,13 +120,14 @@ function rangeStats(range){
   return statsFor(workoutsSince(days));
 }
 function levelFor(total){
-  if(total>=30) return "gold";
-  if(total>=15) return "silver";
-  if(total>=5)  return "bronze";
-  return "wood";
+  if(total>=50) return "elite";
+  if(total>=30) return "pro";
+  if(total>=15) return "athlete";
+  if(total>=5)  return "contender";
+  return "rookie";
 }
 function levelProgress(total){
-  const steps=[0,5,15,30];
+  const steps=[0,5,15,30,50];
   let cur=0;
   for(let i=0;i<steps.length;i++){ if(total>=steps[i]) cur=i; }
   const next=steps[cur+1];
