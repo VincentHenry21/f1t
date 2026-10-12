@@ -173,59 +173,104 @@ function estKcal(durationMin, exercises, weightKg){
   return Math.round(avg*(weightKg||70)*(durationMin/60));
 }
 
-/* ---------- body SVG muscle map ---------- */
+/* ---------- body SVG muscle map (anatomical) ---------- */
 function bodySVG(trained, side){
   // trained: Set of muscle ids to highlight
-  const on=m=>trained.has(m)?' class="mz on"':' class="mz"';
-  const lime="#aefe02";
-  let inner="";
+  const on=m=>trained.has(m)?"on":"";
+  const uid=side==="front"?"f":"b";
+  const base=`
+    <ellipse cx="70" cy="15" rx="10.5" ry="12.5" class="bz"/>
+    <path d="M63 26 L77 26 L77 35 Q70 39 63 35 Z" class="bz"/>
+    <path d="M70 36 C61 36 52 38 47 42 C43 50 42 62 43 74 C44 88 46 100 48 112 C50 124 50 136 52 148 L54 158 L86 158 L88 148 C90 136 90 124 92 112 C94 100 96 88 97 74 C98 62 97 50 93 42 C88 38 79 36 70 36 Z" class="bz"/>
+    <path d="M44 42 C38 46 35 56 34 68 C33 82 33 96 34 110 C35 124 36 138 38 150 L48 150 C47 138 46 124 46 110 C46 96 46 82 47 68 C48 56 48 48 47 43 Z" class="bz"/>
+    <ellipse cx="43" cy="161" rx="5.5" ry="10" class="bz"/>
+    <path d="M52 158 C50 174 49 192 51 208 L69 208 C69 192 68 174 67 158 Z" class="bz"/>
+    <path d="M51 208 C50 220 51 232 53 242 L67 242 C68 232 68 220 67 208 Z" class="bz"/>
+    <ellipse cx="60" cy="246" rx="8" ry="4.5" class="bz"/>`;
+  const delt=`
+    <path class="mp" d="M46 40 C39 42 35 49 34 58 C33 66 36 73 41 75 C46 77 51 73 52 66 C53 57 52 46 46 40 Z"/>
+    <path class="fib" d="M43 45 C40 53 39 61 40 69 M48 46 C46 54 45 62 46 70"/>`;
+  let left="", center="";
   if(side==="front"){
-    inner=`
-    <circle cx="60" cy="16" r="10" class="bz"/>
-    <rect x="53" y="26" width="14" height="10" rx="4" class="bz"/>
-    <ellipse cx="60" cy="76" rx="23" ry="44" class="bz"/>
-    <rect x="26" y="40" width="11" height="62" rx="5.5" class="bz"/>
-    <rect x="83" y="40" width="11" height="62" rx="5.5" class="bz"/>
-    <circle cx="31.5" cy="106" r="6" class="bz"/><circle cx="88.5" cy="106" r="6" class="bz"/>
-    <rect x="45" y="118" width="12" height="82" rx="6" class="bz"/>
-    <rect x="63" y="118" width="12" height="82" rx="6" class="bz"/>
-    <ellipse cx="60" cy="206" rx="9" ry="4" class="bz"/><ellipse cx="60" cy="206" rx="9" ry="4" class="bz"/>
-    <ellipse cx="50" cy="58"${on("chest")} rx="10" ry="8"/>
-    <ellipse cx="70" cy="58"${on("chest")} rx="10" ry="8"/>
-    <circle cx="31.5" cy="44"${on("shoulders")} r="8"/>
-    <circle cx="88.5" cy="44"${on("shoulders")} r="8"/>
-    <ellipse cx="31.5" cy="68"${on("biceps")} rx="5.5" ry="11"/>
-    <ellipse cx="88.5" cy="68"${on("biceps")} rx="5.5" ry="11"/>
-    <rect x="51" y="82" width="18" height="30" rx="7"${on("abs")}/>
-    <ellipse cx="51" cy="148"${on("legs")} rx="7.5" ry="20"/>
-    <ellipse cx="69" cy="148"${on("legs")} rx="7.5" ry="20"/>`;
+    left=`
+    <g class="mz ${on("shoulders")}">${delt}</g>
+    <g class="mz ${on("chest")}">
+      <path class="mp" d="M68 46 C61 44 52 46 47 52 C44 58 46 66 52 70 C58 74 65 72 68 66 C70 60 70 52 68 46 Z"/>
+      <path class="fib" d="M63 50 C59 54 55 59 53 64 M66 53 C62 57 59 61 57 65"/>
+    </g>
+    <g class="mz ${on("biceps")}">
+      <path class="mp" d="M37 72 C34 80 34 90 37 98 C39 102 44 102 46 98 C48 90 48 80 45 72 C42 69 39 69 37 72 Z"/>
+      <path class="fib" d="M41 75 C40 83 40 91 41 98"/>
+    </g>
+    <g class="mz ${on("legs")}">
+      <path class="mp" d="M52 160 C50 176 50 194 53 208 L67 208 C68 194 68 176 66 160 Z"/>
+      <path class="fib" d="M59 162 C58 178 58 194 59 206 M63 188 C65 194 65 201 63 206"/>
+      <path class="mp" d="M55 212 C54 222 54 232 55 241 L63 241 C64 232 64 222 63 212 Z"/>
+      <path class="fib" d="M59 214 L59 239"/>
+    </g>`;
+    center=`
+    <g class="mz ${on("abs")}">
+      <path class="mp" d="M61 90 Q70 87 79 90 L77 128 Q70 131 63 128 Z"/>
+      <path class="fib" d="M62 100 L78 100 M62.5 110 L77.5 110 M63 120 L77 120 M70 89 L70 129"/>
+      <path class="mp" d="M59 92 C55 100 55 114 59 124 L63 124 C60 114 60 102 62 94 Z"/>
+    </g>`;
   }else{
-    inner=`
-    <circle cx="60" cy="16" r="10" class="bz"/>
-    <rect x="53" y="26" width="14" height="10" rx="4" class="bz"/>
-    <ellipse cx="60" cy="76" rx="23" ry="44" class="bz"/>
-    <rect x="26" y="40" width="11" height="62" rx="5.5" class="bz"/>
-    <rect x="83" y="40" width="11" height="62" rx="5.5" class="bz"/>
-    <circle cx="31.5" cy="106" r="6" class="bz"/><circle cx="88.5" cy="106" r="6" class="bz"/>
-    <rect x="45" y="118" width="12" height="82" rx="6" class="bz"/>
-    <rect x="63" y="118" width="12" height="82" rx="6" class="bz"/>
-    <ellipse cx="60" cy="72"${on("back")} rx="15" ry="22"/>
-    <circle cx="31.5" cy="44"${on("shoulders")} r="8"/>
-    <circle cx="88.5" cy="44"${on("shoulders")} r="8"/>
-    <ellipse cx="31.5" cy="68"${on("triceps")} rx="5.5" ry="11"/>
-    <ellipse cx="88.5" cy="68"${on("triceps")} rx="5.5" ry="11"/>
-    <ellipse cx="51" cy="114"${on("legs")} rx="8" ry="9"/>
-    <ellipse cx="69" cy="114"${on("legs")} rx="8" ry="9"/>
-    <ellipse cx="51" cy="150"${on("legs")} rx="7.5" ry="18"/>
-    <ellipse cx="69" cy="150"${on("legs")} rx="7.5" ry="18"/>`;
+    left=`
+    <g class="mz ${on("shoulders")}">${delt}</g>
+    <g class="mz ${on("back")}">
+      <path class="mp" d="M46 68 C40 78 38 94 42 110 C45 122 54 130 64 130 C69 130 71 124 69 116 C65 102 59 84 53 72 Z"/>
+      <path class="fib" d="M52 75 C48 89 47 105 50 119 M58 79 C55 93 54 107 56 121"/>
+    </g>
+    <g class="mz ${on("triceps")}">
+      <path class="mp" d="M35 72 C32 81 32 92 35 100 C37 104 42 104 44 100 C46 92 46 81 43 72 C40 69 37 69 35 72 Z"/>
+      <path class="fib" d="M39 75 C38 84 38 93 39 100"/>
+    </g>
+    <g class="mz ${on("legs")}">
+      <path class="mp" d="M52 160 C48 170 48 184 54 192 C59 198 66 196 68 188 C70 178 68 166 64 160 Z"/>
+      <path class="fib" d="M60 165 C58 175 58 185 60 193"/>
+      <path class="mp" d="M53 194 C52 199 52 204 53 208 L65 208 C66 204 66 199 65 194 Z"/>
+      <path class="fib" d="M59 196 L59 207"/>
+      <path class="mp" d="M53 212 C51 222 52 232 56 240 C58 244 62 244 64 240 C67 232 67 222 65 212 Z"/>
+      <path class="fib" d="M59 214 C58 224 58 232 59 240"/>
+    </g>`;
+    center=`
+    <g class="mz ${on("back")}">
+      <path class="mp" d="M70 36 L50 44 L46 52 L62 60 L66 82 L74 82 L78 60 L94 52 L90 44 Z"/>
+      <path class="fib" d="M70 38 L70 80 M57 47 L70 56 M83 47 L70 56"/>
+    </g>`;
   }
-  return `<svg viewBox="0 0 120 214" class="bodymap" aria-hidden="true"><style>
-    .bodymap .bz{fill:#2b332b}.bodymap .mz{fill:#3a443a;transition:fill .4s}
-    .bodymap .mz.on{fill:${lime};filter:drop-shadow(0 0 6px ${lime}66)}
-    [data-theme="light"] .bodymap .bz{fill:#dfe3df}
-    [data-theme="light"] .bodymap .mz{fill:#cfd6cf}
-    [data-theme="light"] .bodymap .mz.on{fill:#7fc400}
-  </style>${inner}</svg>`;
+  return `<svg viewBox="0 0 140 250" class="bodymap" aria-hidden="true">
+  <defs>
+    <linearGradient id="bmg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5b626b"/><stop offset="1" stop-color="#474d55"/>
+    </linearGradient>
+    <linearGradient id="bmgon" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#cdfa6d"/><stop offset="1" stop-color="#8fd600"/>
+    </linearGradient>
+    <linearGradient id="bmgL" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c9cfd6"/><stop offset="1" stop-color="#aeb6bf"/>
+    </linearGradient>
+    <linearGradient id="bmgonL" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bdf25c"/><stop offset="1" stop-color="#7fc400"/>
+    </linearGradient>
+  </defs>
+  <style>
+    .bodymap .bz{fill:#3d4249}
+    .bodymap .mp{fill:url(#bmg);stroke:rgba(0,0,0,.35);stroke-width:.8}
+    .bodymap .fib{fill:none;stroke:rgba(0,0,0,.3);stroke-width:.9;stroke-linecap:round}
+    .bodymap .mp{transition:fill .3s,filter .3s}
+    .bodymap .mz.on .mp{fill:url(#bmgon);filter:drop-shadow(0 0 4px rgba(174,254,2,.6))}
+    .bodymap .mz.on .fib{stroke:rgba(0,0,0,.45)}
+    [data-theme="light"] .bodymap .bz{fill:#d3d8de}
+    [data-theme="light"] .bodymap .mp{fill:url(#bmgL);stroke:rgba(0,0,0,.16)}
+    [data-theme="light"] .bodymap .fib{stroke:rgba(0,0,0,.2)}
+    [data-theme="light"] .bodymap .mz.on .mp{fill:url(#bmgonL);filter:drop-shadow(0 0 4px rgba(127,196,0,.55))}
+  </style>
+  ${base}
+  <g id="bm${uid}L">${left}</g>
+  <use href="#bm${uid}L" transform="translate(140 0) scale(-1 1)"/>
+  ${center}
+  </svg>`;
 }
 
 window.F1T_WORKOUT={
