@@ -8,6 +8,8 @@ home:'<path fill="currentColor" d="M12 2.8 21 10h-2.6v9.5a1.5 1.5 0 0 1-1.5 1.5H
 chart:'<rect fill="currentColor" x="4" y="12" width="4" height="8" rx="2"/><rect fill="currentColor" x="10" y="7" width="4" height="13" rx="2"/><rect fill="currentColor" x="16" y="3" width="4" height="17" rx="2"/>',
 plus:'<rect fill="currentColor" x="10" y="3.5" width="4" height="17" rx="2"/><rect fill="currentColor" x="3.5" y="10" width="17" height="4" rx="2"/>',
 trophy:'<path fill="currentColor" d="M7 3h10a1 1 0 0 1 1 1v3a6 6 0 0 1-4 5.7V15h2.5a1.5 1.5 0 0 1 0 3h-9a1.5 1.5 0 0 1 0-3H10v-2.3A6 6 0 0 1 6 7V4a1 1 0 0 1 1-1z"/><path fill="currentColor" fill-opacity="0.45" d="M9 5h6v2.2a3 3 0 0 1-6 0z"/>',
+crown:'<path fill="currentColor" d="M3 7.5 6.2 10 12 4l5.8 6L21 7.5 19.4 17a1.6 1.6 0 0 1-1.6 1.4H6.2A1.6 1.6 0 0 1 4.6 17z"/><rect fill="currentColor" fill-opacity="0.45" x="5" y="19" width="14" height="2.6" rx="1.3"/>',
+watch:'<rect fill="currentColor" x="7" y="6" width="10" height="12" rx="3"/><rect fill="currentColor" fill-opacity="0.45" x="9.2" y="8.6" width="5.6" height="6.8" rx="1.6"/><rect fill="currentColor" x="9.5" y="2.6" width="5" height="3.4" rx="1.4"/><rect fill="currentColor" x="9.5" y="18" width="5" height="3.4" rx="1.4"/>',
 menu:'<rect fill="currentColor" x="3" y="5" width="18" height="3.6" rx="1.8"/><rect fill="currentColor" fill-opacity="0.45" x="3" y="10.2" width="18" height="3.6" rx="1.8"/><rect fill="currentColor" x="3" y="15.4" width="18" height="3.6" rx="1.8"/>',
 mic:'<rect x="9" y="2.5" width="6" height="10.5" rx="3" fill="currentColor"/><path fill="currentColor" d="M12 17.2c2.9 0 5.2-2.3 5.2-5.2h1.9c0 3.6-2.7 6.6-6.1 7.1v2.1h2.6v1.8H8.4v-1.8H11v-2.1c-3.4-.5-6.1-3.5-6.1-7.1h1.9c0 2.9 2.3 5.2 5.2 5.2z"/>',
 
