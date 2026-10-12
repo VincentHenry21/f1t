@@ -653,3 +653,89 @@ button.ds-day{font-family:var(--font);cursor:pointer}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001s!important;transition-duration:.001s!important}
 }
+
+/* ============ v8: workout ============ */
+.wo-hub{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:18px;border-radius:20px;
+  background:var(--surface);border:1.5px solid var(--card-brd);margin-bottom:10px;transition:transform .16s var(--ease),border-color .2s}
+.wo-hub:active{transform:scale(.97)}
+.wo-hub-ic{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,var(--green),var(--green-deep));
+  color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.wo-hub-tx{flex:1}.wo-hub-tx b{display:block;font-size:16px}.wo-hub-tx small{color:var(--ink2);font-weight:600;font-size:12px}
+.wo-sub{text-align:center;color:var(--ink2);font-weight:600;font-size:13px;margin:-8px 0 14px}
+.wo-seg{margin-bottom:14px}
+.wo-picker{display:flex;gap:12px;margin-bottom:16px}
+.wo-pills{flex:1;display:flex;flex-direction:column;gap:10px}
+.wo-pill{display:flex;align-items:center;gap:10px;padding:14px 16px;border-radius:99px;
+  background:var(--surface);border:1.5px solid var(--card-brd);font-weight:700;font-size:14px;color:var(--ink);
+  transition:all .2s var(--ease);text-align:left}
+.wo-pill.on{border-color:var(--lime-d);background:rgba(174,254,2,.1)}
+.wo-pill svg{flex:none}
+.wo-ck{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--divider);display:flex;align-items:center;justify-content:center;flex:none;color:#0d0d0d}
+.wo-pill.on .wo-ck{background:var(--lime);border-color:var(--lime)}
+.wo-map{width:110px;flex:none;display:flex;align-items:center;justify-content:center}
+.wo-map .bodymap{width:100%;height:auto;max-height:230px}
+.wo-exlist{max-height:44dvh;overflow-y:auto;margin-bottom:12px}
+.wo-exrow.on{border-color:var(--lime-d);background:rgba(174,254,2,.08)}
+.wo-add{width:34px;height:34px;border-radius:50%;background:var(--surface-2);border:1px solid var(--card-brd);
+  display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:300;flex:none;color:var(--ink)}
+.wo-exrow.on .wo-add{background:var(--lime);border-color:var(--lime);color:#0d0d0d;font-size:14px}
+/* active workout */
+.wo-modal{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 20px)}
+.wo-top{display:flex;align-items:center;justify-content:space-between;margin:4px 0 16px}
+.wo-timer{font-family:var(--font-d);font-size:42px;font-weight:600;letter-spacing:1px;line-height:1}
+.wo-top small{color:var(--ink2);font-weight:700;font-size:12px}
+.wo-ex{background:var(--surface);border:1px solid var(--card-brd);border-radius:18px;padding:14px;margin-bottom:12px}
+.wo-exhead{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
+.wo-exhead b{font-size:15px;flex:1}
+.wo-exhead small{color:var(--ink2);font-weight:600;font-size:12px}
+.wo-rmex{color:var(--ink2);font-size:22px;font-weight:300;padding:0 6px}
+.wo-set{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.wo-setn{width:26px;height:26px;border-radius:50%;background:var(--surface-2);border:1px solid var(--card-brd);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex:none;color:var(--ink2)}
+.wo-set.done .wo-setn{background:var(--lime);border-color:var(--lime);color:#0d0d0d}
+.wo-set input{flex:1;min-width:0;padding:11px 10px;border-radius:12px;border:1px solid var(--line);
+  background:var(--raised);color:var(--ink);font-size:15px;font-weight:700;text-align:center;outline:none;font-family:var(--font)}
+.wo-set input:focus{border-color:var(--green)}
+.wo-set.done input{opacity:.45;text-decoration:line-through}
+.wo-setdone{width:38px;height:38px;border-radius:50%;background:var(--surface-2);border:1px solid var(--card-brd);
+  display:flex;align-items:center;justify-content:center;flex:none;color:var(--ink2);transition:all .2s var(--ease)}
+.wo-set.done .wo-setdone{background:var(--lime);border-color:var(--lime);color:#0d0d0d}
+.wo-addset{width:100%;padding:10px;color:var(--ink2);font-weight:700;font-size:13px}
+/* rest overlay */
+#rest-ov{position:fixed;inset:0;z-index:99;background:rgba(8,10,8,.82);backdrop-filter:blur(8px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;animation:fadein .25s var(--ease)}
+.rest-card{display:flex;flex-direction:column;align-items:center;gap:10px}
+.rest-ring{position:relative;width:120px;height:120px}
+.rest-ring svg{transform:rotate(0deg)}
+.rest-t{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-d);font-size:38px;font-weight:600;color:#fff}
+.rest-label{color:#fff;font-weight:800;font-size:16px;letter-spacing:1px;text-transform:uppercase}
+.rest-btns{display:flex;gap:12px}
+.rest-btns button{padding:13px 26px;border-radius:99px;background:rgba(255,255,255,.12);color:#fff;font-weight:700;font-size:14px;border:1px solid rgba(255,255,255,.16)}
+.rest-btns button.on{background:var(--lime);color:#0d0d0d;border-color:var(--lime)}
+/* workout stats */
+.wo-segmain{margin-bottom:12px}
+.wo-range{margin-bottom:14px}
+.level-card{padding:20px;margin-bottom:14px;text-align:center}
+.lc-label{font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink2)}
+.lc-level{font-family:var(--font-d);font-size:34px;font-weight:600;letter-spacing:1px;color:var(--lime);margin:2px 0 10px}
+[data-theme="light"] .lc-level{color:var(--green-deep)}
+.lc-barwrap{max-width:240px;margin:0 auto 16px}
+.lc-bar{height:8px;border-radius:99px;background:var(--track);overflow:hidden;margin-bottom:6px}
+.lc-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--lime),var(--lime-d));transition:width .7s var(--ease)}
+.lc-barwrap small{font-size:12px;color:var(--ink2);font-weight:600}
+.lc-bodies{display:flex;justify-content:center;gap:8px;margin-bottom:12px}
+.lc-bodies .bodymap{width:110px;height:auto}
+.lc-legend{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;font-size:12px;font-weight:700;color:var(--ink2)}
+.lc-legend span{display:flex;align-items:center;gap:6px}
+.ldot{width:10px;height:10px;border-radius:50%}
+.l-gold{background:#f5c542}.l-silver{background:#b8c0c8}.l-bronze{background:#cd7f32}.l-wood{background:#8b5a2b}
+.cal-card{padding:18px;margin-bottom:14px}
+.wc-head{text-align:center;margin-bottom:10px}.wc-head b{font-size:16px;font-weight:800}
+.wc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.wc-dow{text-align:center;font-size:10px;font-weight:800;color:var(--ink2);padding:4px 0;text-transform:uppercase}
+.wc-empty{min-height:36px}
+.wc-day{min-height:36px;display:flex;align-items:center;justify-content:center;border-radius:12px;font-size:13px;font-weight:700;color:var(--ink)}
+.wc-day.hit{background:rgba(174,254,2,.18);color:var(--ink);position:relative}
+.wc-day.hit::after{content:"";position:absolute;bottom:5px;width:5px;height:5px;border-radius:50%;background:var(--lime-d)}
+.wc-day.today{box-shadow:inset 0 0 0 1.5px var(--green)}
