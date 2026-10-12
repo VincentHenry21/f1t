@@ -81,8 +81,38 @@ window.F1TFB = (() => {
     catch(e){ return ()=>{}; }
   }
 
+  async function setDisplayName(name){
+    if (ok && auth.currentUser && name){ try{ await auth.currentUser.updateProfile({displayName:name}); }catch(e){} }
+  }
+  /* ---- guest -> account migration: push every local day + profile to cloud ---- */
+  async function pushLocalToCloud(){
+    if(!ok || !uid) return 0;
+    let n=0;
+    try{
+      const p=loadProfile(); if(p){ await saveProfile(p); n++; }
+      const keys=[];
+      for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i);
+        if(k && k.indexOf("f1t_day_")===0) keys.push(k.slice(8)); }
+      for(const dk of keys){
+        try{ const d=JSON.parse(localStorage.getItem("f1t_day_"+dk)||"null");
+          if(d){ await saveDay(dk,d); n++; } }catch(e){}
+      }
+      try{
+        const ws=JSON.parse(localStorage.getItem("f1t_workouts")||"[]");
+        for(const w of ws){
+          if(w && w.date){
+            const day=loadDay(w.date)||blankDay();
+            day.workouts=day.workouts||[];
+            if(!day.workouts.some(x=>x.id===w.id)){ day.workouts.push(w); await saveDay(w.date,day); n++; }
+          }
+        }
+      }catch(e){}
+    }catch(e){}
+    return n;
+  }
   return { get ready(){return ok;}, get uid(){return uid;},
-    onAuth, signUp, signIn, google, redirectResult, signOut,
+    onAuth, signUp, signIn, google, redirectResult, signOut, setDisplayName,
     saveProfile, loadProfile, pullProfile, loadDay, saveDay, pullDay, pullHealth, blankDay,
+    pushLocalToCloud,
     subDay, subProfile };
 })();
