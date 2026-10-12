@@ -110,16 +110,7 @@ window.F1TFB = (() => {
     }catch(e){}
     return n;
   }
-  /* ---- premium claims + scoreboard (real database) ---- */
-  async function saveClaim(claim){
-    // local mirror always
-    try{
-      const cs=JSON.parse(localStorage.getItem("f1t_claims")||"[]");
-      cs.push(claim); localStorage.setItem("f1t_claims",JSON.stringify(cs));
-    }catch(e){}
-    if(ok){ try{ await db.collection("f1t_premium_claims").doc(claim.id).set(claim); return "cloud"; }catch(e){} }
-    return "local";
-  }
+  /* ---- scoreboard (real database) ---- */
   async function boardSet(entry){
     try{ localStorage.setItem("f1t_board_me",JSON.stringify(entry)); }catch(e){}
     if(ok){ try{ await db.collection("f1t_leaderboard").doc(entry.id).set(entry,{merge:true}); }catch(e){} }
@@ -134,6 +125,6 @@ window.F1TFB = (() => {
   return { get ready(){return ok;}, get uid(){return uid;},
     onAuth, signUp, signIn, google, redirectResult, signOut, setDisplayName,
     saveProfile, loadProfile, pullProfile, loadDay, saveDay, pullDay, pullHealth, blankDay,
-    pushLocalToCloud, saveClaim, boardSet, boardTop,
+    pushLocalToCloud, boardSet, boardTop,
     subDay, subProfile };
 })();
