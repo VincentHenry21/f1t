@@ -292,13 +292,17 @@ input,select{font-family:var(--font)}
 .badge.won{border-color:var(--green)}
 
 /* menu */
-.prof-card{padding:20px;display:flex;align-items:center;gap:14px;margin-bottom:14px}
-.prof-card .avatar{width:60px;height:60px;font-size:24px}
-.prof-card b{font-size:18px;font-weight:800;display:block}
-.prof-card small{color:var(--ink2);font-weight:600}
+.prof-card{padding:22px 20px;display:flex;align-items:center;gap:16px;margin-bottom:14px;position:relative;overflow:hidden}
+.prof-card::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(120% 100% at 88% 0%,color-mix(in srgb,var(--lime) 10%,transparent),transparent 55%)}
+.prof-card .avatar{width:72px;height:72px;font-size:30px;box-shadow:0 0 0 2px var(--lime),0 10px 26px rgba(0,0,0,.4)}
+.prof-card b{font-size:20px;font-weight:800;display:block;letter-spacing:-.3px}
+.prof-card small{color:var(--ink2);font-weight:600;font-size:13px;display:block;margin-top:4px;line-height:1.5}
 .menu-list{display:flex;flex-direction:column;gap:10px}
 .menu-row{padding:16px 18px;display:flex;align-items:center;gap:14px;font-weight:700;font-size:15px;width:100%;text-align:left}
-.menu-row .mr-ico{width:40px;height:40px;border-radius:14px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+.menu-row .mr-ico{width:42px;height:42px;border-radius:15px;display:flex;align-items:center;justify-content:center;flex:none;
+  background:color-mix(in srgb,var(--lime) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--lime) 22%,transparent);color:var(--lime)}
+.menu-row.danger .mr-ico{color:#ff6b62;background:color-mix(in srgb,#ff6b62 12%,var(--surface));border-color:color-mix(in srgb,#ff6b62 25%,transparent)}
 .menu-row .mr-t{flex:1;min-width:0}
 .menu-row .mr-sub{margin-left:auto;font-size:13px;color:var(--ink2);font-weight:600}
 .menu-row .chev{color:var(--ink2);font-weight:700}
@@ -408,10 +412,11 @@ button.ds-day{font-family:var(--font);cursor:pointer}
 .logo-profile{width:64px;height:64px;border-radius:18px;box-shadow:0 8px 24px rgba(90,60,30,.2);flex:none}
 .logo-card small{color:var(--ink2);font-weight:600}
 /* profile stats */
-.p-stats{display:flex;margin-bottom:14px;padding:18px 12px}
+.p-stats{display:flex;margin-bottom:14px;padding:20px 12px}
 .p-stats div{flex:1;text-align:center}
 .p-stats div+div{border-left:1px solid var(--divider)}
 .p-stats b{font-size:21px;font-weight:800;display:block;letter-spacing:-.5px}
+.p-stats div:nth-child(3) b{color:var(--lime)}
 .p-stats small{font-size:12px;color:var(--ink2);font-weight:600}
 /* ===== dark-mode vivid widgets (reference style) ===== */
 [data-theme="dark"] .stat-tile,[data-theme="dark"] .mini{border-color:transparent;color:#fff}
@@ -603,16 +608,14 @@ button.ds-day{font-family:var(--font);cursor:pointer}
 
 /* ---- motion system: smooth, GPU-only, iOS-like ---- */
 :root{--ease:cubic-bezier(.32,.72,0,1);--ease-spring:cubic-bezier(.34,1.32,.64,1)}
-.view.active{animation:viewin .38s var(--ease)}
-@keyframes viewin{from{opacity:0;transform:translateY(16px) scale(.996)}to{opacity:1;transform:none}}
-/* staggered card entrance when a view appears */
-.view.active .page>*{animation:rise .5s var(--ease) backwards}
-.view.active .page>*:nth-child(2){animation-delay:.05s}
-.view.active .page>*:nth-child(3){animation-delay:.1s}
-.view.active .page>*:nth-child(4){animation-delay:.15s}
-.view.active .page>*:nth-child(5){animation-delay:.2s}
-.view.active .page>*:nth-child(6){animation-delay:.25s}
-.view.active .page>*:nth-child(n+7){animation-delay:.3s}
+/* staggered card entrance, plays only right after a tab switch (JS adds .enter) */
+.view.enter .page>*{animation:rise .5s var(--ease) backwards}
+.view.enter .page>*:nth-child(2){animation-delay:.05s}
+.view.enter .page>*:nth-child(3){animation-delay:.1s}
+.view.enter .page>*:nth-child(4){animation-delay:.15s}
+.view.enter .page>*:nth-child(5){animation-delay:.2s}
+.view.enter .page>*:nth-child(6){animation-delay:.25s}
+.view.enter .page>*:nth-child(n+7){animation-delay:.3s}
 @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 /* sheets + modals: spring up */
 #sheet{animation:sheetup .36s var(--ease-spring)}
@@ -830,7 +833,7 @@ button.ds-day{font-family:var(--font);cursor:pointer}
 .gslider-row{margin:6px 0 16px}
 
 /* --- environment card --- */
-.env-wrap{padding:16px}
+.env-wrap{padding:16px;margin-bottom:14px}
 .env-top{display:flex;align-items:center;gap:14px}
 .env-ic{width:52px;height:52px;border-radius:18px;display:flex;align-items:center;justify-content:center;flex:none;
   background:linear-gradient(145deg, rgba(255,255,255,.16), rgba(255,255,255,0));
@@ -889,10 +892,7 @@ button.ds-day{font-family:var(--font);cursor:pointer}
 @keyframes spopIn{0%{transform:scale(.25);opacity:0}60%{transform:scale(1.12);opacity:1}100%{transform:scale(1);opacity:1}}
 .spop.out .ck{transition:transform .3s ease,opacity .3s ease;transform:scale(.6);opacity:0}
 
-/* view transition */
-.view.active .page{animation:pageIn .38s cubic-bezier(.22,.8,.3,1)}
-@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){
-  .view.active .page{animation:none}
+  .view.enter .page>*{animation:none}
   .xc-bars .b,.xc-dots i,.spop .ck{animation-duration:.01s}
 }
