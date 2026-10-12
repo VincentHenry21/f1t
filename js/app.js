@@ -35,12 +35,13 @@ function show(view){
   S.view=view;
   $$(".view").forEach(v=>v.classList.remove("active"));
   $("#view-"+view).classList.add("active");
-  $("#tabbar").classList.toggle("hidden", !["home","coach","stats","rewards","profile"].includes(view));
+  $("#tabbar").classList.toggle("hidden", !["home","coach","stats","rewards","profile","settings"].includes(view));
   $$("#tabbar .tab[data-goto]").forEach(b=>b.classList.toggle("on", b.dataset.goto===view));
   window.scrollTo(0,0);
   if(view==="home") renderHome();
   if(view==="coach") renderCoach();
   if(view==="stats") renderStats();
+  if(view==="settings") renderSettings();
   if(view==="rewards") renderRewards();
   if(view==="profile") renderProfile();
 }
@@ -638,8 +639,22 @@ function renderProfile(){
       <div><b>${bmi?bmi.value.toFixed(1):"--"}</b><small>${t("bmi")}</small></div>
       <div><b>${fmt(p.targetKcal||2000)}</b><small>${t("kcal")}${t("perDay")}</small></div>
       <div><b>${st}</b><small>${t("dayStreak")}</small></div></div>
+    <div class="menu-list">
+      <button class="glass-card menu-row" id="m-stats"><span class="mr-ico">${ic("chart",20)}</span><span class="mr-t">${t("progress")}</span><span class="chev">›</span></button>
+      <button class="glass-card menu-row" id="m-rewards"><span class="mr-ico">${ic("trophy",20)}</span><span class="mr-t">${t("rewards")}</span><span class="chev">›</span></button>
+      <button class="glass-card menu-row" id="m-goals"><span class="mr-ico">${ic("target",20)}</span><span class="mr-t">${t("editGoals")}</span><span class="mr-sub">${fmt(p.targetKcal||2000)} ${t("kcal")}</span><span class="chev">›</span></button>
+    </div>`;
+  $("#prof-edit").onclick=openEditProfile;
+  $("#av-edit").onclick=e=>{ e.stopPropagation(); openAvatarSheet(); };
+  $("#m-goals").onclick=openGoals;
+  $("#m-rewards").onclick=()=>show("rewards");
+  $("#m-stats").onclick=()=>show("stats");
+}
+
+/* ---------- SETTINGS (own tab) ---------- */
+function renderSettings(){
+  $("#settings-body").innerHTML=`
     <div class="glass-card set-card">
-      <div class="set-head">${t("settings")}</div>
       <div class="menu-row theme-row" id="m-theme"><div class="theme-top"><span class="mr-ico">${ic("sun",20)}</span><span class="mr-t">${t("appearance")}</span></div>
         <span class="seg-sm theme-seg"><button data-th="light" class="${S.theme!=="dark"?"on":""}">${t("lightMode")}</button><button data-th="dark" class="${S.theme==="dark"?"on":""}">${t("darkMode")}</button></span></div>
       <button class="menu-row" id="m-lang"><span class="mr-ico">${ic("globe",20)}</span><span class="mr-t">${t("language")}</span><span class="mr-sub">${t("langName")}</span><span class="chev">›</span></button>
@@ -652,21 +667,15 @@ function renderProfile(){
       <button class="menu-row" id="m-terms"><span class="mr-ico">${ic("doc",20)}</span><span class="mr-t">${t("rulesTitle")}</span><span class="chev">›</span></button>
     </div>
     <div class="menu-list">
-      <button class="glass-card menu-row" id="m-rewards"><span class="mr-ico">${ic("trophy",20)}</span><span class="mr-t">${t("rewards")}</span><span class="chev">›</span></button>
-      <button class="glass-card menu-row" id="m-goals"><span class="mr-ico">${ic("target",20)}</span><span class="mr-t">${t("editGoals")}</span><span class="mr-sub">${fmt(p.targetKcal||2000)} ${t("kcal")}</span><span class="chev">›</span></button>
       <button class="glass-card menu-row" id="m-install"><span class="mr-ico">${ic("smartphone",20)}</span><span class="mr-t">${t("installApp")}</span><span class="chev">›</span></button>
       <button class="glass-card menu-row danger" id="m-logout"><span class="mr-ico">${ic("logout",20)}</span><span class="mr-t">${t("logout")}</span></button>
     </div>
     <div class="empty-note">${t("version")}</div>
     <div class="empty-note profile-copy">${t("copyright")}</div>`;
   $("#m-lang").onclick=openLangSheet;
-  $("#prof-edit").onclick=openEditProfile;
-  $("#av-edit").onclick=e=>{ e.stopPropagation(); openAvatarSheet(); };
   $("#m-terms").onclick=openRules;
   $("#m-export").onclick=exportICS;
-  $$(".perm-row").forEach(b=>b.onclick=()=>requestPerm(b.dataset.perm));
-  $("#m-goals").onclick=openGoals;
-  $("#m-rewards").onclick=()=>show("rewards");
+  $$("#settings-body .perm-row").forEach(b=>b.onclick=()=>requestPerm(b.dataset.perm));
   $("#m-theme").onclick=e=>{ const b=e.target.closest("[data-th]"); if(!b) return;
     S.theme=b.dataset.th; applyTheme();
     $$("#m-theme [data-th]").forEach(x=>x.classList.toggle("on",x===b)); };
@@ -1031,7 +1040,7 @@ function initNav(){
   $("#sheet-close").onclick=closeSheet;
   $("#sheet-backdrop").onclick=closeSheet;
   /* designed icons */
-  const tg={home:"home",coach:"chat",stats:"chart",profile:"user"};
+  const tg={home:"home",coach:"chat",profile:"user",settings:"gear"};
   $$("#tabbar .tab[data-goto] .t-ico").forEach(el=>{ el.innerHTML=ic(tg[el.closest(".tab").dataset.goto]||"home",22); });
   $("#tab-add .t-ico").innerHTML=ic("plus",30);
   $$(".page-head .back").forEach(b=>{ b.innerHTML=ic("chevL",22); });
