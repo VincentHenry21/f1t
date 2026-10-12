@@ -189,13 +189,13 @@ function renderOb(){
     const goals=[["lose","target",t("lose"),t("loseS")],["maintain","scale",t("maintain"),t("maintainS")],["gain","dumbbell",t("gain"),t("gainS")]];
     b.innerHTML=`<div class="glass-card ob-card"><h2>${t("ob3t")}</h2><p>${t("ob3p")}</p>
       ${goals.map(g=>`<button class="goal-opt ${o.goal===g[0]?"on":""}" data-v="${g[0]}"><span class="g-ico">${ic(g[1],26)}</span><span><b>${g[2]}</b><small>${g[3]}</small></span></button>`).join("")}
-      <div class="field" style="margin-top:14px"><label>${t("active")}</label><div class="seg" id="ob-act">
+      <div class="field" style="margin-top:1.059rem"><label>${t("active")}</label><div class="seg" id="ob-act">
         <button data-v="1" class="${o.active?"on":""}">${t("yesActive")}</button>
         <button data-v="0" class="${!o.active?"on":""}">${t("noActive")}</button></div></div>
-      <div class="glass-card" style="padding:16px;text-align:center;margin-bottom:6px">
-        <div style="font-size:12px;font-weight:700;color:var(--ink2)">${t("yourTarget")}</div>
-        <div style="font-size:38px;font-weight:800" id="ob-target">--</div>
-        <div style="font-size:12px;font-weight:700;color:var(--ink2)">${t("kcal")} / ${t("days")}</div>
+      <div class="glass-card" style="padding:1.21rem;text-align:center;margin-bottom:0.454rem">
+        <div style="font-size:0.908rem;font-weight:700;color:var(--ink2)">${t("yourTarget")}</div>
+        <div style="font-size:2.874rem;font-weight:800" id="ob-target">--</div>
+        <div style="font-size:0.908rem;font-weight:700;color:var(--ink2)">${t("kcal")} / ${t("days")}</div>
       </div>
       <div class="accept-row"><input type="checkbox" id="ob-accept">
         <span>${t("acceptRules")} <button type="button" id="ob-rules">${t("rulesTitle")}</button></span></div>
@@ -760,8 +760,8 @@ function renderRewards(){
   const st=streak(); const bs=badges();
   $("#rewards-body").innerHTML=`
     <div class="glass-card streak-card"><div class="flame">${ic("flame",44)}</div><b>${st}</b><span>${t("dayStreak")}</span>
-      <div style="margin-top:8px;font-size:13px">${t("keepGoing")}</div>
-      ${window.F1T_PREMIUM&&F1T_PREMIUM.isPremium()?`<button class="btn-lime sm" id="st-restore" style="margin-top:10px">${t("restoreStreak")}</button>`:""}</div>
+      <div style="margin-top:0.605rem;font-size:0.983rem">${t("keepGoing")}</div>
+      ${window.F1T_PREMIUM&&F1T_PREMIUM.isPremium()?`<button class="btn-lime sm" id="st-restore" style="margin-top:0.756rem">${t("restoreStreak")}</button>`:""}</div>
     <div class="badge-grid">${bs.map(b=>`<div class="glass-card badge ${b.won?"won":""}">
       <span class="b-ico">${ic(b.won?b.ic:"lock",30)}</span><b>${b.n}</b><small>${b.d}</small></div>`).join("")}</div>`;
   const rb=$("#st-restore");
@@ -839,7 +839,7 @@ function renderSettings(){
   $("#m-install").onclick=()=>openInfo(t("installApp"), t("installHow"));
   $("#m-logout").onclick=()=>{
     $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
-      <h2>${t("logout")}</h2><p style="text-align:center;color:var(--ink2);font-weight:600;margin-bottom:18px">${t("confirmLogout")}</p>
+      <h2>${t("logout")}</h2><p style="text-align:center;color:var(--ink2);font-weight:600;margin-bottom:1.362rem">${t("confirmLogout")}</p>
       <div class="ob-nav"><button class="btn-back" id="lg-cancel">${t("cancel")}</button>
       <button class="btn-lime" id="lg-ok">${t("logout")}</button></div></div></div>`;
     $("#lg-cancel").onclick=closeModal;
@@ -872,7 +872,7 @@ let sheetTitleKey="logTitle";
 function openLangSheet(){
   const langs=[["en","English"],["my","မြန်မာ"],["th","ไทย"],["zh","中文"],["ja","日本語"]];
   sheetTitleKey="language"; $("#sheet-title").textContent=t("language");
-  $("#sheet-grid").innerHTML=langs.map(l=>`<button class="sheet-opt" data-lang="${l[0]}"><span style="font-size:22px;font-weight:800">${l[1].slice(0,2)}</span>${l[1]}${S.lang===l[0]?" ✓":""}</button>`).join("");
+  $("#sheet-grid").innerHTML=langs.map(l=>`<button class="sheet-opt" data-lang="${l[0]}"><span style="font-size:1.664rem;font-weight:800">${l[1].slice(0,2)}</span>${l[1]}${S.lang===l[0]?" ✓":""}</button>`).join("");
   $("#sheet").classList.remove("hidden"); $("#sheet-backdrop").classList.remove("hidden");
   $$("#sheet-grid [data-lang]").forEach(b=>b.onclick=()=>{ closeSheet(); setLang(b.dataset.lang); });
 }
@@ -930,7 +930,7 @@ function openEditProfile(){
 }
 function openInfo(title, body){
   $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
-    <h2>${title}</h2><p style="font-weight:500;color:var(--ink2);line-height:1.6;margin-bottom:16px">${body}</p>
+    <h2>${title}</h2><p style="font-weight:500;color:var(--ink2);line-height:1.6;margin-bottom:1.21rem">${body}</p>
     <button class="btn-lime" id="m-ok">${t("done")}</button></div></div>`;
   $("#m-ok").onclick=closeModal; $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
@@ -1072,7 +1072,7 @@ function openMealPicker(meal){
     <div class="or"><span>${t("or")}</span></div>
     <div class="field"><label>${t("customFood")} · ${t("foodName")}</label><input id="cf-name" placeholder="${t("foodName")}"></div>
     <div class="qty-row"><input id="cf-kcal" type="number" inputmode="numeric" placeholder="${t("calories")} (${t("kcal")})">
-      <button class="btn-lime" id="cf-add" style="width:auto;padding:14px 26px">${t("add")}</button></div>
+      <button class="btn-lime" id="cf-add" style="width:auto;padding:1.059rem 1.967rem">${t("add")}</button></div>
     </div></div>`;
   renderList("");
   $("#food-q").oninput=e=>renderList(e.target.value);
@@ -1153,15 +1153,15 @@ function openAvatarSheet(){
   const p=S.profile||{};
   $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
     <h2>${ic("user",22)} ${t("avatarPhoto")}</h2>
-    <div style="display:flex;justify-content:center;margin-bottom:8px"><div class="avatar-wrap" style="transform:scale(1.4);margin:12px">${avatarHTML(p)}</div></div>
+    <div style="display:flex;justify-content:center;margin-bottom:0.605rem"><div class="avatar-wrap" style="transform:scale(1.4);margin:0.908rem">${avatarHTML(p)}</div></div>
     <div class="av-colors">${AV_COLORS.map(c=>`<button data-c="${c}" class="${(p.avatarColor||"#22c55e")===c?"on":""}" style="background:${c}"></button>`).join("")}</div>
-    <div class="sheet-grid" style="margin-top:14px">
+    <div class="sheet-grid" style="margin-top:1.059rem">
       <button class="sheet-opt" id="av-take">${ic("camera",22)}${t("takePhoto")}</button>
       <button class="sheet-opt" id="av-upload">${ic("upload",22)}${t("uploadPhoto")}</button>
       ${p.avatarImg?`<button class="sheet-opt" id="av-remove">${ic("x",22)}${t("removePhoto")}</button>`:""}
     </div>
     <input type="file" id="av-file" accept="image/*" class="hidden">
-    <button class="btn-lime" id="m-ok" style="margin-top:14px">${t("done")}</button></div></div>`;
+    <button class="btn-lime" id="m-ok" style="margin-top:1.059rem">${t("done")}</button></div></div>`;
   const save=async()=>{ await window.F1TFB.saveProfile(S.profile); openAvatarSheet(); renderProfile(); };
   $$("#modal-root .av-colors button").forEach(b=>b.onclick=()=>{ S.profile.avatarColor=b.dataset.c; save(); });
   $("#av-take").onclick=()=>{ const f=$("#av-file"); f.setAttribute("capture","user"); f.click(); };
@@ -1199,10 +1199,10 @@ function openCamera(){
     <h2>${ic("camera",22)} ${t("takePhoto")}</h2>
     <div class="cam-preview" id="cam-prev"><span>${ic("camera",40)}</span></div>
     <input type="file" id="cam-file" accept="image/*" capture="environment" class="hidden">
-    <div class="seg-sm" style="margin-bottom:12px">${meals.map(m=>`<button data-m="${m}" class="${m===meal?"on":""}">${t(m)}</button>`).join("")}</div>
+    <div class="seg-sm" style="margin-bottom:0.908rem">${meals.map(m=>`<button data-m="${m}" class="${m===meal?"on":""}">${t(m)}</button>`).join("")}</div>
     <div class="field"><label>${t("foodName")}</label><input id="cam-name" placeholder="${t("foodName")}"></div>
     <div class="qty-row"><input id="cam-kcal" type="number" inputmode="numeric" placeholder="${t("calories")} (${t("kcal")})">
-      <button class="btn-lime" id="cam-save" style="width:auto;padding:14px 26px">${t("add")}</button></div>
+      <button class="btn-lime" id="cam-save" style="width:auto;padding:1.059rem 1.967rem">${t("add")}</button></div>
     <button class="btn-glass full" id="cam-snap">${t("takePhoto")}</button></div></div>`;
   $$("#modal-root .seg-sm button").forEach(b=>b.onclick=()=>{ meal=b.dataset.m;
     $$("#modal-root .seg-sm button").forEach(x=>x.classList.toggle("on",x===b)); });
@@ -1297,7 +1297,7 @@ function openWorkoutHub(){
       <span class="wo-hub-tx"><b>${t("startWorkout")}</b><small>${t("startWorkoutSub")}</small></span><span class="chev">›</span></button>
     <button class="wo-hub" id="wo-quick"><span class="wo-hub-ic">${ic("clock",26)}</span>
       <span class="wo-hub-tx"><b>${t("quickLog")}</b><small>${t("quickLogSub")}</small></span><span class="chev">›</span></button>
-    <div class="gslider-val" style="font-size:26px"><b id="rs-n">${rs}</b> <small>s · ${t("rest")}</small></div>
+    <div class="gslider-val" style="font-size:1.967rem"><b id="rs-n">${rs}</b> <small>s · ${t("rest")}</small></div>
     <div class="gslider-row" id="rs-slider"></div>
     <button class="btn-glass full" id="wo-cancel">${t("cancel")}</button></div></div>`;
   initGlassSlider($("#rs-slider"),{min:15,max:180,step:15,value:rs,red:true,label:t("rest"),
@@ -1475,9 +1475,9 @@ function finishWorkout(){
       <div class="glass-card stat-tile"><div class="t-top">${ic("clock",20)} ${t("totalTime")}</div><div class="t-big">${durMin}<small> ${t("min")}</small></div></div>
       <div class="glass-card stat-tile"><div class="t-top">${ic("dumbbell",20)} ${t("exercises")}</div><div class="t-big">${w.exercises.length}</div></div>
     </div>
-    <div class="glass-card stat-tile" style="margin-top:12px"><div class="t-top">${ic("scale",20)} ${t("totalVolume")}</div><div class="t-big">${fmt(Math.round(vol))}<small> kg</small></div></div>
-    <div class="glass-card stat-tile" style="margin-top:12px"><div class="t-top">${ic("zap",20)} ${t("calories")}</div><div class="t-big">${fmt(w.kcal)}<small> kcal</small></div></div>
-    <button class="btn-lime" id="wo-ok" style="margin-top:16px">${t("done")}</button></div></div>`;
+    <div class="glass-card stat-tile" style="margin-top:0.908rem"><div class="t-top">${ic("scale",20)} ${t("totalVolume")}</div><div class="t-big">${fmt(Math.round(vol))}<small> kg</small></div></div>
+    <div class="glass-card stat-tile" style="margin-top:0.908rem"><div class="t-top">${ic("zap",20)} ${t("calories")}</div><div class="t-big">${fmt(w.kcal)}<small> kcal</small></div></div>
+    <button class="btn-lime" id="wo-ok" style="margin-top:1.21rem">${t("done")}</button></div></div>`;
   $("#wo-ok").onclick=()=>{ closeModal(); successPop(); toast(t("workoutSaved")); show(S.view); };
   $("#mback").onclick=e=>{ if(e.target.id==="mback"){ closeModal(); show(S.view); } };
 }
@@ -1510,8 +1510,8 @@ function renderWorkoutStats(){
       <div class="glass-card stat-tile xcard-src" data-kind="workouts"><div class="t-top">${ic("dumbbell",20)} ${t("workouts")}</div><div class="t-big">${st.count}</div></div>
       <div class="glass-card stat-tile xcard-src" data-kind="minutes"><div class="t-top">${ic("clock",20)} ${t("totalTime")}</div><div class="t-big">${st.minutes}<small> ${t("min")}</small></div></div>
     </div>
-    <div class="glass-card stat-tile xcard-src" data-kind="volume" style="margin-top:12px"><div class="t-top">${ic("scale",20)} ${t("totalVolume")}</div><div class="t-big">${fmt(st.volume)}<small> kg</small></div></div>
-    <div class="streak-pill" style="margin:14px auto">${ic("flame",18)}<b>${ws}</b><span>${t("weekStreak")}</span></div>
+    <div class="glass-card stat-tile xcard-src" data-kind="volume" style="margin-top:0.908rem"><div class="t-top">${ic("scale",20)} ${t("totalVolume")}</div><div class="t-big">${fmt(st.volume)}<small> kg</small></div></div>
+    <div class="streak-pill" style="margin:1.059rem auto">${ic("flame",18)}<b>${ws}</b><span>${t("weekStreak")}</span></div>
     <div class="glass-card level-card depth-3d tilt"><div class="lc-label">${t("yourLevel")}</div>
       <div class="lc-level">${t("level_"+lp.level)}</div>
       <div class="lc-barwrap"><div class="lc-bar"><i style="width:${lp.pct}%"></i></div>
@@ -1538,7 +1538,7 @@ function initGlassSlider(mount, opt){
   function render(){
     const pct=(val-opt.min)/(opt.max-opt.min)*100;
     fill.style.width=pct+"%";
-    thumb.style.left=`calc(${pct}% - 21px)`;
+    thumb.style.left=`calc(${pct}% - 1.588rem)`;
     el.setAttribute("aria-valuenow",val);
     if(opt.display) opt.display(val);
   }
@@ -1575,6 +1575,8 @@ function initGlassSlider(mount, opt){
 }
 
 /* 3D tilt on hero cards (fine pointers only; CSS gates it) */
+/* root-relative px: matches the rem scale (html font-size tracks viewport width) */
+function rpx(v){ const f=parseFloat(getComputedStyle(document.documentElement).fontSize); return v*1.18*((f>0?f:15.6)/15.6); }
 /* sliding bubble indicator for the tab bar: measures the active tab and springs to it */
 function moveBubble(){
   const bar=$("#tabbar"), b=$("#tab-bubble");
@@ -1583,9 +1585,8 @@ function moveBubble(){
   const place=()=>{
     const br=bar.getBoundingClientRect(), r=act.getBoundingClientRect();
     if(r.width===0) return;
-    const z=act.offsetWidth?r.width/act.offsetWidth:1; /* body zoom compensation */
-    b.style.left=Math.max(0,(r.left-br.left)/z-6)+"px";
-    b.style.width=(r.width/z+12)+"px";
+    b.style.left=Math.max(0,(r.left-br.left)-rpx(6))+"px";
+    b.style.width=(r.width+rpx(12))+"px";
   };
   requestAnimationFrame(place);
   /* re-measure after the label finishes expanding so the bubble lands exactly */
@@ -1604,7 +1605,7 @@ function initTilt(scope){  if(!window.matchMedia||!matchMedia("(hover:hover) and
       const r=card.getBoundingClientRect();
       const rx=((e.clientY-r.top)/r.height-.5)*-7;
       const ry=((e.clientX-r.left)/r.width-.5)*9;
-      card.style.transform=`perspective(900px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) translateZ(0)`;
+      card.style.transform=`perspective(68.077rem) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) translateZ(0)`;
     });
     card.addEventListener("pointerleave",()=>{ card.style.transform=""; });
   });
@@ -1627,21 +1628,18 @@ function countUp(el, to, dur, format, from){
 /* expand a card into a detail sheet (FLIP zoom from its rect) */
 function expandCard(src, html){
   const r=src.getBoundingClientRect();
-  /* zoom-robust: measure everything in pre-zoom px (rects are post-zoom) */
-  const z=(src.offsetWidth&&r.width)?r.width/src.offsetWidth:1;
-  const rl=r.left/z, rt=r.top/z, rw=r.width/z, rh=r.height/z;
-  const vw=document.documentElement.getBoundingClientRect().width/z;
-  const vh=document.documentElement.getBoundingClientRect().height/z;
+  const vw=document.documentElement.getBoundingClientRect().width;
+  const vh=document.documentElement.getBoundingClientRect().height;
   const back=document.createElement("div"); back.className="xcard-back";
   const card=document.createElement("div"); card.className="xcard";
   card.innerHTML=`<button class="xcard-x" aria-label="close">×</button><div class="xcard-in">${html}</div>`;
-  const W=Math.min(480,vw), H=vh;
-  const tw=Math.min(W-24,452), th=Math.min(H*0.74,600);
-  const tx=(W-tw)/2, ty=Math.max(56,(H-th)/2-30);
+  const W=Math.min(rpx(480),vw), H=vh;
+  const tw=Math.min(W-rpx(24),rpx(452)), th=Math.min(H*0.74,rpx(600));
+  const tx=(W-tw)/2, ty=Math.max(rpx(56),(H-th)/2-rpx(30));
   card.style.left=tx+"px"; card.style.top=ty+"px";
   card.style.width=tw+"px"; card.style.height=th+"px";
-  const sx=Math.max(.05,rw/tw), sy=Math.max(.05,rh/th);
-  const dx=rl-tx, dy=rt-ty;
+  const sx=Math.max(.05,r.width/tw), sy=Math.max(.05,r.height/th);
+  const dx=r.left-tx, dy=r.top-ty;
   const from=`translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px) scale(${sx.toFixed(3)},${sy.toFixed(3)})`;
   card.style.transform=from;
   document.body.append(back,card);
@@ -1652,7 +1650,7 @@ function expandCard(src, html){
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     back.classList.add("on");
     card.style.transition="transform .55s cubic-bezier(.32,.72,.24,1)";
-    card.style.transform="translate(0px,0px) scale(1,1)";
+    card.style.transform="translate(0,0) scale(1,1)";
     inner.style.transition="opacity .32s ease .16s"; inner.style.opacity="1";
   }));
   let closed=false;
