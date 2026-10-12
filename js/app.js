@@ -504,8 +504,15 @@ function renderProfile(){
     S.theme=b.dataset.th; applyTheme();
     $$("#m-theme [data-th]").forEach(x=>x.classList.toggle("on",x===b)); };
   $("#m-install").onclick=()=>openInfo(t("installApp"), t("installHow"));
-  $("#m-logout").onclick=async()=>{ if(confirm(t("confirmLogout"))){ await window.F1TFB.signOut();
-    store.del("f1t_guest"); location.reload(); } };
+  $("#m-logout").onclick=()=>{
+    $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
+      <h2>${t("logout")}</h2><p style="text-align:center;color:var(--ink2);font-weight:600;margin-bottom:18px">${t("confirmLogout")}</p>
+      <div class="ob-nav"><button class="btn-back" id="lg-cancel">${t("cancel")}</button>
+      <button class="btn-lime" id="lg-ok">${t("logout")}</button></div></div></div>`;
+    $("#lg-cancel").onclick=closeModal;
+    $("#lg-ok").onclick=async()=>{ await window.F1TFB.signOut(); store.del("f1t_guest"); location.reload(); };
+    $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
+  };
 }
 function openInfo(title, body){
   $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
