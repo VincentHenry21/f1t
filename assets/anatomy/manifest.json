@@ -1,0 +1,558 @@
+{
+ "source": "BodyParts3D 4.0, Database Center for Life Science",
+ "license": "CC BY 4.0 International",
+ "attribution": "BodyParts3D, \u00a9 The Database Center for Life Science licensed under CC Attribution 4.0 International",
+ "note": "Right-side meshes only; left side is mirrored at runtime. Decimated for mobile.",
+ "muscles": [
+  {
+   "id": "pec_major",
+   "name": "Pectoralis major",
+   "fma": "FMA34686",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1447",
+    "FJ1464",
+    "FJ1446"
+   ],
+   "files": [
+    "FJ1447",
+    "FJ1464",
+    "FJ1446"
+   ],
+   "midline": false
+  },
+  {
+   "id": "delt_ant",
+   "name": "Anterior deltoid (clavicular part)",
+   "fma": "FMA34677",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1468"
+   ],
+   "files": [
+    "FJ1468"
+   ],
+   "midline": false
+  },
+  {
+   "id": "delt_lat",
+   "name": "Lateral deltoid (acromial part)",
+   "fma": "FMA34678",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1467"
+   ],
+   "files": [
+    "FJ1467"
+   ],
+   "midline": false
+  },
+  {
+   "id": "delt_post",
+   "name": "Posterior deltoid (spinal part)",
+   "fma": "FMA34679",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1513"
+   ],
+   "files": [
+    "FJ1513"
+   ],
+   "midline": false
+  },
+  {
+   "id": "biceps",
+   "name": "Biceps brachii",
+   "fma": "FMA37682 / FMA37683",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1512",
+    "FJ1478"
+   ],
+   "files": [
+    "FJ1512",
+    "FJ1478"
+   ],
+   "midline": false
+  },
+  {
+   "id": "triceps",
+   "name": "Triceps brachii",
+   "fma": "FMA37692 / FMA37693 / FMA37694",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1479",
+    "FJ1480",
+    "FJ1477"
+   ],
+   "files": [
+    "FJ1479",
+    "FJ1480",
+    "FJ1477"
+   ],
+   "midline": false
+  },
+  {
+   "id": "forearm_flex",
+   "name": "Forearm flexors (group)",
+   "fma": "FMA38472",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1475",
+    "FJ1496",
+    "FJ1499",
+    "FJ1502"
+   ],
+   "files": [
+    "FJ1475",
+    "FJ1496",
+    "FJ1499",
+    "FJ1502"
+   ],
+   "midline": false
+  },
+  {
+   "id": "forearm_ext",
+   "name": "Forearm extensors (group)",
+   "fma": "FMA38491",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1472",
+    "FJ1489",
+    "FJ1490",
+    "FJ1491",
+    "FJ1492",
+    "FJ1517"
+   ],
+   "files": [
+    "FJ1472",
+    "FJ1489",
+    "FJ1490",
+    "FJ1491",
+    "FJ1492",
+    "FJ1517"
+   ],
+   "midline": false
+  },
+  {
+   "id": "ab_wall",
+   "name": "Abdominal wall",
+   "fma": "FMA20278",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1452"
+   ],
+   "files": [
+    "FJ1452"
+   ],
+   "midline": false
+  },
+  {
+   "id": "serratus_ant",
+   "name": "Serratus anterior",
+   "fma": "FMA13397",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1459"
+   ],
+   "files": [
+    "FJ1459"
+   ],
+   "midline": false
+  },
+  {
+   "id": "traps",
+   "name": "Trapezius",
+   "fma": "FMA32529",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1520",
+    "FJ1554",
+    "FJ1521"
+   ],
+   "files": [
+    "FJ1520",
+    "FJ1554",
+    "FJ1521"
+   ],
+   "midline": false
+  },
+  {
+   "id": "rhomboids",
+   "name": "Rhomboids",
+   "fma": "FMA13379 / FMA13380",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1536",
+    "FJ1537"
+   ],
+   "files": [
+    "FJ1536",
+    "FJ1537"
+   ],
+   "midline": false
+  },
+  {
+   "id": "glute_max",
+   "name": "Gluteus maximus",
+   "fma": "FMA22314",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1418"
+   ],
+   "files": [
+    "FJ1418"
+   ],
+   "midline": false
+  },
+  {
+   "id": "glute_med",
+   "name": "Gluteus medius",
+   "fma": "FMA22315",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1419"
+   ],
+   "files": [
+    "FJ1419"
+   ],
+   "midline": false
+  },
+  {
+   "id": "rectus_femoris",
+   "name": "Rectus femoris",
+   "fma": "FMA22430",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1433"
+   ],
+   "files": [
+    "FJ1433"
+   ],
+   "midline": false
+  },
+  {
+   "id": "vastus_lat",
+   "name": "Vastus lateralis",
+   "fma": "FMA22431",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1442"
+   ],
+   "files": [
+    "FJ1442"
+   ],
+   "midline": false
+  },
+  {
+   "id": "vastus_med",
+   "name": "Vastus medialis",
+   "fma": "FMA22432",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1443"
+   ],
+   "files": [
+    "FJ1443"
+   ],
+   "midline": false
+  },
+  {
+   "id": "gastroc",
+   "name": "Gastrocnemius",
+   "fma": "FMA45956 / FMA45959",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1397",
+    "FJ1394"
+   ],
+   "files": [
+    "FJ1397",
+    "FJ1394"
+   ],
+   "midline": false
+  },
+  {
+   "id": "tibialis_ant",
+   "name": "Tibialis anterior",
+   "fma": "FMA22532",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1439"
+   ],
+   "files": [
+    "FJ1439"
+   ],
+   "midline": false
+  },
+  {
+   "id": "sartorius",
+   "name": "Sartorius",
+   "fma": "FMA22353",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1434"
+   ],
+   "files": [
+    "FJ1434"
+   ],
+   "midline": false
+  },
+  {
+   "id": "tfl",
+   "name": "Tensor fasciae latae",
+   "fma": "FMA22423",
+   "layer": "superficial",
+   "bp3d": [
+    "FJ1438"
+   ],
+   "files": [
+    "FJ1438"
+   ],
+   "midline": false
+  },
+  {
+   "id": "brachialis",
+   "name": "Brachialis",
+   "fma": "FMA37667",
+   "layer": "deep",
+   "bp3d": [
+    "FJ1486"
+   ],
+   "files": [
+    "FJ1486"
+   ],
+   "midline": false
+  },
+  {
+   "id": "coracobrachialis",
+   "name": "Coracobrachialis",
+   "fma": "FMA37664",
+   "layer": "deep",
+   "bp3d": [
+    "FJ1488"
+   ],
+   "files": [
+    "FJ1488"
+   ],
+   "midline": false
+  },
+  {
+   "id": "levator_scap",
+   "name": "Levator scapulae",
+   "fma": "FMA32519",
+   "layer": "deep",
+   "bp3d": [
+    "FJ1532"
+   ],
+   "files": [
+    "FJ1532"
+   ],
+   "midline": false
+  },
+  {
+   "id": "teres_major",
+   "name": "Teres major",
+   "fma": "FMA32549",
+   "layer": "deep",
+   "bp3d": [
+    "FJ1507"
+   ],
+   "files": [
+    "FJ1507"
+   ],
+   "midline": false
+  },
+  {
+   "id": "teres_minor",
+   "name": "Teres minor",
+   "fma": "FMA32550",
+   "layer": "deep",
+   "bp3d": [
+    "FJ1508"
+   ],
+   "files": [
+    "FJ1508"
+   ],
+   "midline": false
+  },
+  {
+   "id": "supraspinatus",
+   "name": "Supraspinatus",
+   "fma": "FMA9629",
+   "layer": "deep",
+   "bp3d": [
+    "FJ1506"
+   ],
+   "files": [
+    "FJ1506"
+   ],
+   "midline": false
+  },
+  {
+   "id": "infraspinatus",
+   "name": "Infraspinatus",
+   "fma": "FMA32546",
+   "layer": "deep",
+   "bp3d": [
+    "FJ1500"
+   ],
+   "files": [
+    "FJ1500"
+   ],
+   "midline": false
+  },
+  {
+   "id": "erector",
+   "name": "Erector spinae",
+   "fma": "FMA77177 / FMA77178 / FMA77179",
+   "layer": "deep",
+   "bp3d": [
+    "FJ1526",
+    "FJ1527",
+    "FJ1528",
+    "FJ1533",
+    "FJ1534",
+    "FJ1535",
+    "FJ1543",
+    "FJ1544"
+   ],
+   "files": [
+    "FJ1526",
+    "FJ1527",
+    "FJ1528",
+    "FJ1533",
+    "FJ1534",
+    "FJ1535",
+    "FJ1543",
+    "FJ1544"
+   ],
+   "midline": false
+  },
+  {
+   "id": "iliopsoas",
+   "name": "Iliopsoas",
+   "fma": "FMA18060 / FMA22310",
+   "layer": "deep",
+   "bp3d": [
+    "FJ1431",
+    "FJ1422"
+   ],
+   "files": [
+    "FJ1431",
+    "FJ1422"
+   ],
+   "midline": false
+  },
+  {
+   "id": "glute_min",
+   "name": "Gluteus minimus",
+   "fma": "FMA22317",
+   "layer": "deep",
+   "bp3d": [
+    "FJ1420"
+   ],
+   "files": [
+    "FJ1420"
+   ],
+   "midline": false
+  },
+  {
+   "id": "vastus_int",
+   "name": "Vastus intermedius",
+   "fma": "FMA22433",
+   "layer": "deep",
+   "bp3d": [
+    "FJ1441"
+   ],
+   "files": [
+    "FJ1441"
+   ],
+   "midline": false
+  },
+  {
+   "id": "biceps_femoris",
+   "name": "Biceps femoris",
+   "fma": "FMA45887 / FMA45890",
+   "layer": "deep",
+   "bp3d": [
+    "FJ1395",
+    "FJ1444"
+   ],
+   "files": [
+    "FJ1395",
+    "FJ1444"
+   ],
+   "midline": false
+  },
+  {
+   "id": "semitendinosus",
+   "name": "Semitendinosus",
+   "fma": "FMA22357",
+   "layer": "deep",
+   "bp3d": [
+    "FJ1436"
+   ],
+   "files": [
+    "FJ1436"
+   ],
+   "midline": false
+  },
+  {
+   "id": "semimembranosus",
+   "name": "Semimembranosus",
+   "fma": "FMA22438",
+   "layer": "deep",
+   "bp3d": [
+    "FJ1435"
+   ],
+   "files": [
+    "FJ1435"
+   ],
+   "midline": false
+  },
+  {
+   "id": "adductors",
+   "name": "Adductors",
+   "fma": "FMA22441 / FMA22442 / FMA22443",
+   "layer": "deep",
+   "bp3d": [
+    "FJ1402",
+    "FJ1401",
+    "FJ1403"
+   ],
+   "files": [
+    "FJ1402",
+    "FJ1401",
+    "FJ1403"
+   ],
+   "midline": false
+  },
+  {
+   "id": "soleus",
+   "name": "Soleus",
+   "fma": "FMA22542",
+   "layer": "deep",
+   "bp3d": [
+    "FJ1437"
+   ],
+   "files": [
+    "FJ1437"
+   ],
+   "midline": false
+  },
+  {
+   "id": "gracilis",
+   "name": "Gracilis",
+   "fma": "FMA43882",
+   "layer": "deep",
+   "bp3d": [
+    "FJ1421"
+   ],
+   "files": [
+    "FJ1421"
+   ],
+   "midline": false
+  }
+ ]
+}
