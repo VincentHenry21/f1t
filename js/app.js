@@ -103,6 +103,10 @@ function streak(){
     const day = k===S.dateKey ? S.day : window.F1TFB.loadDay(k);
     if(day && day.kcal>0) s++; else break;
   }
+  try{ /* premium streak-restore bonus */
+    const b=JSON.parse(localStorage.getItem("f1t_streak_bonus")||"null");
+    if(b&&Date.now()<b.until) s+=b.days;
+  }catch(e){}
   return s;
 }
 
@@ -534,6 +538,7 @@ function renderCoach(){
       <div class="coach-ask">${t("coachHelp")}</div>
     </div>
     <div class="chat-log" id="chat-log">${chatHTML()||""}</div>
+    <div class="persona-row" id="persona-row"></div>
     <div class="chat-chips">${chips.map(c=>`<button data-cp="${c[1]}">${ic("zap",13)}${t(c[0])}</button>`).join("")}</div>
     <div class="coach-bar">
       <button class="cb-mic" id="c-mic" aria-label="voice">${ic("mic",20)}</button>
@@ -556,6 +561,7 @@ function renderCoach(){
   $("#chat-in").onkeydown=e=>{ if(e.key==="Enter") send(); };
   $("#c-mic").onclick=openVoice;
   $$("#coach-body [data-cp]").forEach(b=>b.onclick=()=>askCoach(t(b.dataset.cp)));
+  if(window.F1T_PREMIUM) F1T_PREMIUM.paintPersonas();
 }
 function coachAsk(prompt){ show("coach"); setTimeout(()=>askCoach(prompt),350); }
 async function askCoach(text){
@@ -604,9 +610,12 @@ function coachSystem(){
   const p=S.profile||{}, d=S.day||{};
   const plan=window.F1T_COACH?window.F1T_COACH.plan(p):null;
   const n=plan?plan.nutrition:null;
-  return "You are F1T Coach, an expert fitness and nutrition coach inside the F1T calorie tracker app. "+
+  const FP=window.F1T_PREMIUM;
+  const intro=FP?FP.sysFor(FP.persona()):
+    "You are F1T Coach, an expert fitness and nutrition coach inside the F1T calorie tracker app. "+
     "Reply concisely (under 120 words unless asked for detail), practical and encouraging. Use metric units. "+
-    "Never diagnose medical conditions; suggest a professional for health concerns. "+
+    "Never diagnose medical conditions; suggest a professional for health concerns. ";
+  return intro+
     "User profile: name="+(p.name||"friend")+", age="+(p.age||"?")+", height="+(p.h||"?")+"cm, weight="+(p.w||"?")+
     "kg, goal="+(p.goal||"maintain")+", daily target="+(p.targetKcal||2000)+"kcal. "+
     "Today so far: "+(d.kcal||0)+"kcal, protein "+(d.p||0)+"g, carbs "+(d.c||0)+"g, fat "+(d.f||0)+
@@ -751,9 +760,15 @@ function renderRewards(){
   const st=streak(); const bs=badges();
   $("#rewards-body").innerHTML=`
     <div class="glass-card streak-card"><div class="flame">${ic("flame",44)}</div><b>${st}</b><span>${t("dayStreak")}</span>
-      <div style="margin-top:8px;font-size:13px">${t("keepGoing")}</div></div>
+      <div style="margin-top:8px;font-size:13px">${t("keepGoing")}</div>
+      ${window.F1T_PREMIUM&&F1T_PREMIUM.isPremium()?`<button class="btn-lime sm" id="st-restore" style="margin-top:10px">${t("restoreStreak")}</button>`:""}</div>
     <div class="badge-grid">${bs.map(b=>`<div class="glass-card badge ${b.won?"won":""}">
       <span class="b-ico">${ic(b.won?b.ic:"lock",30)}</span><b>${b.n}</b><small>${b.d}</small></div>`).join("")}</div>`;
+  const rb=$("#st-restore");
+  if(rb) rb.onclick=()=>{
+    if(!F1T_PREMIUM.canRestore()){ toast(t("restoreCool")); return; }
+    if(F1T_PREMIUM.doRestore()){ toast(t("streakRestored")); renderRewards(); }
+  };
 }
 
 /* ---------- MENU ---------- */
@@ -765,7 +780,7 @@ function renderProfile(){
   $("#profile-body").innerHTML=`
     <div class="glass-card prof-card" id="prof-edit"><div class="avatar-wrap">${avatarHTML(p)}
       <button class="avatar-edit" id="av-edit" aria-label="customize">${ic("pencil",15)}</button></div>
-      <div style="flex:1;min-width:0"><b>${p.name||t("guest")}</b>${(()=>{const parts=[p.accountName||who];if(p.birthday)parts.push(fmtBD(p.birthday));if(p.age!=null)parts.push(t("age")+" "+p.age);if(p.sign)parts.push(t(p.sign));return `<small>${parts.join(" · ")}</small>`;})()}</div>
+      <div style="flex:1;min-width:0"><b>${p.name||t("guest")} ${window.F1T_PREMIUM&&F1T_PREMIUM.isPremium()?F1T_PREMIUM.badgeHTML():""}</b>${(()=>{const parts=[p.accountName||who];if(p.birthday)parts.push(fmtBD(p.birthday));if(p.age!=null)parts.push(t("age")+" "+p.age);if(p.sign)parts.push(t(p.sign));return `<small>${parts.join(" · ")}</small>`;})()}</div>
       <span class="chev">›</span></div>
     <div class="glass-card body-card">
       <div class="plan-row"><span>${t("bodyStatus")}</span><b>${bmi?bmi.value.toFixed(1)+" · "+t(BMI_CATKEY[bmi.cat]):"--"}</b></div>
@@ -779,10 +794,14 @@ function renderProfile(){
       <button class="glass-card menu-row" id="m-stats"><span class="mr-ico">${ic("chart",20)}</span><span class="mr-t">${t("progress")}</span><span class="chev">›</span></button>
       <button class="glass-card menu-row" id="m-rewards"><span class="mr-ico">${ic("trophy",20)}</span><span class="mr-t">${t("rewards")}</span><span class="chev">›</span></button>
       <button class="glass-card menu-row" id="m-goals"><span class="mr-ico">${ic("target",20)}</span><span class="mr-t">${t("editGoals")}</span><span class="mr-sub">${fmt(p.targetKcal||2000)} ${t("kcal")}</span><span class="chev">›</span></button>
+      <button class="glass-card menu-row" id="m-premium"><span class="mr-ico">${ic("crown",20)}</span><span class="mr-t">${t("f1tPremium")}</span>${window.F1T_PREMIUM&&F1T_PREMIUM.isPremium()?F1T_PREMIUM.badgeHTML():""}<span class="chev">›</span></button>
+      <button class="glass-card menu-row" id="m-board"><span class="mr-ico">${ic("trophy",20)}</span><span class="mr-t">${t("scoreboard")}</span><span class="chev">›</span></button>
     </div>`;
   $("#prof-edit").onclick=openEditProfile;
   $("#av-edit").onclick=e=>{ e.stopPropagation(); openAvatarSheet(); };
   $("#m-goals").onclick=openGoals;
+  $("#m-premium").onclick=()=>window.F1T_PREMIUM&&F1T_PREMIUM.openPremiumHub();
+  $("#m-board").onclick=()=>window.F1T_PREMIUM&&F1T_PREMIUM.openScoreboard();
   $("#m-rewards").onclick=()=>show("rewards");
   $("#m-stats").onclick=()=>show("stats");
 }
@@ -1572,6 +1591,11 @@ function moveBubble(){
   clearTimeout(b._t); b._t=setTimeout(place,420);
 }
 window.addEventListener("resize",()=>{ moveBubble(); });
+/* hide the tab bar while the keyboard is open (chat, search, forms) */
+document.addEventListener("focusin",e=>{
+  if(e.target&&(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA")) document.body.classList.add("kb");
+});
+document.addEventListener("focusout",()=>document.body.classList.remove("kb"));
 function initTilt(scope){  if(!window.matchMedia||!matchMedia("(hover:hover) and (pointer:fine)").matches) return;
   (scope||document).querySelectorAll(".tilt").forEach(card=>{
     if(card._tilt) return; card._tilt=true;
