@@ -1,0 +1,40 @@
+/* ============ F1T · Welcome (opening screen) ============ */
+/* Always-dark cinematic welcome shown on cold start when logged out. */
+#welcome{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;align-items:center;
+  background:#08080c;color:#fff;overflow:hidden;
+  opacity:0;visibility:hidden;transition:opacity .45s ease,visibility 0s .45s;
+  padding:0 1.6rem calc(1.6rem + env(safe-area-inset-bottom));text-align:center}
+#welcome.on{opacity:1;visibility:visible;transition:opacity .45s ease}
+/* aurora arc */
+.wel-aurora{position:absolute;top:-24%;left:50%;transform:translateX(-50%);width:150%;aspect-ratio:2.1/1;
+  border-radius:50%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(255,255,255,.95) 0%,rgba(210,225,255,.5) 34%,rgba(174,254,2,.22) 52%,transparent 72%);
+  filter:blur(1.9rem)}
+.wel-aurora::after{content:"";position:absolute;inset:18% 12%;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(255,255,255,.9),transparent 70%);filter:blur(1.2rem)}
+.wel-grain{position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:radial-gradient(rgba(255,255,255,.05) .0625rem,transparent .0625rem);
+  background-size:.375rem .375rem}
+/* content */
+.wel-body{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%;max-width:26rem;
+  margin:auto 0;padding-top:34%}
+.wel-mark{width:5.2rem;height:5.2rem;object-fit:contain;filter:brightness(0) invert(1);
+  margin-bottom:2.6rem;animation:welIn .7s cubic-bezier(.2,.9,.25,1.2) both .1s}
+.wel-title{font-size:2.15rem;font-weight:800;letter-spacing:-.02em;line-height:1.15;margin-bottom:1rem;
+  animation:welIn .7s cubic-bezier(.2,.9,.3,1) both .22s}
+.wel-sub{font-size:1.06rem;line-height:1.6;color:#a7a7b3;font-weight:500;max-width:21rem;
+  animation:welIn .7s cubic-bezier(.2,.9,.3,1) both .32s}
+.wel-cta{margin-top:auto;width:100%;position:relative;z-index:1;animation:welIn .7s cubic-bezier(.2,.9,.3,1) both .42s}
+.wel-btn{display:block;width:100%;border:0;border-radius:999px;background:#fff;color:#0a0a0a;
+  font-size:1.13rem;font-weight:800;letter-spacing:-.01em;padding:1.15rem 1rem;cursor:pointer;
+  box-shadow:0 .5rem 3rem rgba(255,255,255,.35),0 .125rem .75rem rgba(255,255,255,.25);
+  transition:transform .18s ease,box-shadow .25s ease}
+.wel-btn:active{transform:scale(.97)}
+.wel-login{margin-top:1.35rem;font-size:1rem;color:#8e8e99;font-weight:500}
+.wel-login button{background:none;border:0;color:#fff;font-weight:800;font-size:1rem;cursor:pointer;padding:.25rem .4rem}
+.wel-terms{margin-top:2.2rem;font-size:.82rem;line-height:1.65;color:#6d6d78;font-weight:500;max-width:22rem}
+@keyframes welIn{from{opacity:0;transform:translateY(1.4rem)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .wel-mark,.wel-title,.wel-sub,.wel-cta{animation:none}
+  #welcome{transition:none}
+}
