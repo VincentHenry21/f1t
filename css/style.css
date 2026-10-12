@@ -123,6 +123,11 @@ input,select{font-family:var(--font)}
 .field input,.field select{width:100%;padding:1.059rem 1.21rem;border-radius:1.21rem;border:0.076rem solid var(--line);
   background:var(--surface-2);font-size:1.21rem;font-weight:600;color:var(--ink);outline:none}
 .field input:focus,.field select:focus{border-color:var(--green);box-shadow:0 0 0 0.227rem rgba(22,163,74,.25)}
+/* kill Safari/Chrome yellow autofill background, keep the dark theme */
+.field input:-webkit-autofill,.field input:-webkit-autofill:hover,.field input:-webkit-autofill:focus{
+  -webkit-text-fill-color:var(--ink);
+  -webkit-box-shadow:0 0 0 62.5rem var(--surface-2) inset;
+  transition:background-color 99999s ease-in-out 0s}
 .btn-lime{width:100%;padding:1.21rem;border-radius:7.488rem;background:var(--lime);font-weight:800;font-size:1.21rem;color:#0d0d0d;
   box-shadow:0 0.605rem 1.664rem rgba(127,196,0,.35);transition:transform .12s}
 .btn-lime:active{transform:scale(.97)}
