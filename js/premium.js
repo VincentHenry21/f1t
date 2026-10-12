@@ -133,14 +133,14 @@ function openPremiumHub(){
       <div class="glass-card feat"><span class="f-ico">${ic(["crown","flame","mic","watch","zap","trophy"][i],20)}</span>
       <span>${t(f)}</span></div>`).join("")}</div>
     <h3 class="prem-h">${t("devices")}</h3>
-    <button class="glass-card menu-row" id="prem-dev"><span class="mr-ico">${ic("watch",20)}</span>
-      <span class="mr-t">${t("connectWatch")}</span><span class="hr-live hidden" id="hr-live">-- ${t("bpm")}</span>
+    <button class="glass-card dev-row" id="prem-dev"><span class="f-ico">${ic("watch",20)}</span>
+      <span class="dev-tx">${t("connectWatch")}</span><span class="hr-live hidden" id="hr-live">-- ${t("bpm")}</span>
       <span class="chev">›</span></button>
     <h3 class="prem-h">${t("premiumPlans")}</h3>
     ${[["planStrength","planStrengthD"],["planShred","planShredD"]].map(x=>`
-      <div class="glass-card plan-row2"><div><b>${t(x[0])}</b><small>${t(x[1])}</small></div>
+      <div class="glass-card proplan"><div class="proplan-tx"><b>${t(x[0])}</b><small>${t(x[1])}</small></div>
       <button class="btn-lime sm" data-proplan="${t(x[0])}">${prem?t("startPlan"):t("proOnly")}</button></div>`).join("")}
-    <div style="height:8px"></div>
+    <div style="height:0.605rem"></div>
   </div></div>`;
   $$("#modal-root [data-plan]").forEach(b=>b.onclick=()=>openPurchase(b.dataset.plan));
   $$("#modal-root [data-proplan]").forEach(b=>b.onclick=()=>{
