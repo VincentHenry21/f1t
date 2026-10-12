@@ -1,5 +1,5 @@
 /* F1T service worker · cache-first app shell */
-const CACHE = "f1t-v10.4";
+const CACHE = "f1t-v10.5";
 const SHELL = ["./","./index.html","./manifest.webmanifest","./css/style.css","./css/welcome.css",
   "./js/i18n.js","./js/data.js","./js/icons.js","./js/analysis.js","./js/coach.js","./js/workout.js","./js/env.js","./js/firebase.js","./js/premium.js","./js/app.js"];
 self.addEventListener("install", e=>{
@@ -13,7 +13,8 @@ self.addEventListener("fetch", e=>{
   if(e.request.method!=="GET") return;
   e.respondWith(caches.match(e.request).then(hit=>hit || fetch(e.request).then(res=>{
     const copy=res.clone();
-    if(new URL(e.request.url).origin===location.origin) caches.open(CACHE).then(c=>c.put(e.request,copy));
+    /* never cache error pages: a 404 cached as CSS/JS breaks the app offline-first */
+    if(res.ok && new URL(e.request.url).origin===location.origin) caches.open(CACHE).then(c=>c.put(e.request,copy));
     return res;
   }).catch(()=>caches.match("./index.html"))));
 });
