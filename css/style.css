@@ -117,12 +117,29 @@ input,select{font-family:var(--font)}
 .page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .page-head h1{font-size:24px;font-weight:800;letter-spacing:-.5px}
 
-/* icons via emoji-free svg-ish glyphs: use text glyphs */
-.i-home::before{content:"🏠";font-size:19px}.i-chart::before{content:"📊";font-size:19px}.i-plus::before{content:"+"}
-.i-trophy::before{content:"🏆";font-size:19px}.i-menu::before{content:"☰"}
-#home-cal::before{content:"▦"}#home-bell::before{content:"🔔";font-size:17px}
-.page-head .back::before{content:"‹";font-size:24px;font-weight:700}
-.page-head .more::before{content:"•••";font-size:14px;letter-spacing:2px}
+/* designed icons (inline SVG, injected by JS) */
+.t-ico svg,.ico-btn svg,.m-ico svg,.f-ico svg,.mr-ico svg,.sheet-opt svg,
+.zap svg,.b-ico svg,.h-ico svg,.sync-note svg{display:block}
+.m-thumbs span svg{display:block}
+.water-drops{display:flex;gap:4px;margin-top:10px}
+.water-drops i{opacity:.16;color:#1d9bf0}
+.water-drops i.on{opacity:1}
+.drop-row{display:flex;gap:4px;margin-top:10px;color:#1d9bf0}
+.drop-row i{color:#1d9bf0}
+.m-kcal svg{vertical-align:-2px;margin-right:2px}
+.sync-note{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--ink2);margin-top:6px}
+.sync-note svg{color:var(--lime-d)}
+/* apple health card */
+.health-card{padding:18px;margin-bottom:14px}
+.h-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.h-ico{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#ff9eb0,#ff5b7f);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.h-top b{font-size:16px;font-weight:800;flex:1}
+.h-sync{font-size:11px;font-weight:700;color:var(--ink2);display:flex;align-items:center;gap:4px}
+.h-row{display:flex;gap:10px}
+.h-row div{flex:1;background:rgba(255,255,255,.55);border-radius:16px;padding:12px 8px;text-align:center}
+.h-row b{font-size:19px;font-weight:800;display:block}
+.h-row small{font-size:11px;color:var(--ink2);font-weight:600}
+.h-setup{font-size:13px;font-weight:600;color:var(--ink2);line-height:1.5}
 
 /* home cards */
 .intake-card{padding:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;
@@ -141,8 +158,7 @@ input,select{font-family:var(--font)}
 .mini .m-top{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:10px}
 .mini .m-big{font-size:24px;font-weight:800;letter-spacing:-.5px}
 .mini .m-big small{font-size:13px;font-weight:600;color:var(--ink2)}
-.mini .m-ico{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;background:rgba(255,255,255,.65)}
-.water-drops{display:flex;gap:3px;margin-top:10px;font-size:13px}
+.mini .m-ico{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.65)}
 .datestrip{padding:16px;margin-bottom:14px}
 .datestrip .ds-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .datestrip .ds-head b{font-size:17px;font-weight:800}
@@ -188,7 +204,6 @@ input,select{font-family:var(--font)}
 .spark{display:flex;align-items:flex-end;gap:3px;height:44px;margin-bottom:10px}
 .spark i{flex:1;background:linear-gradient(180deg,var(--lime),var(--lime-d));border-radius:3px;min-height:4px}
 .pulse{margin-bottom:8px}
-.drop-row{display:flex;gap:4px;margin-top:10px;font-size:16px}
 
 /* rewards */
 .streak-card{padding:22px;text-align:center;margin-bottom:14px;background:linear-gradient(120deg,rgba(255,200,150,.6),rgba(255,255,255,.5))}
