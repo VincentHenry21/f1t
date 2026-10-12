@@ -1,7 +1,7 @@
 /* F1T service worker · cache-first app shell */
 const CACHE = "f1t-v1";
 const SHELL = ["./","./index.html","./manifest.webmanifest","./css/style.css",
-  "./js/i18n.js","./js/data.js","./js/icons.js","./js/firebase.js","./js/app.js"];
+  "./js/i18n.js","./js/data.js","./js/icons.js","./js/analysis.js","./js/firebase.js","./js/app.js"];
 self.addEventListener("install", e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));
 });
