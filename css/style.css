@@ -401,3 +401,58 @@ button.ds-day{font-family:var(--font);cursor:pointer}
 .p-stats div+div{border-left:1px solid var(--divider)}
 .p-stats b{font-size:21px;font-weight:800;display:block;letter-spacing:-.5px}
 .p-stats small{font-size:12px;color:var(--ink2);font-weight:600}
+/* ===== dark-mode vivid widgets (reference style) ===== */
+[data-theme="dark"] .stat-tile,[data-theme="dark"] .mini{border-color:transparent;color:#fff}
+[data-theme="dark"] .stat-tile .t-top,[data-theme="dark"] .mini .m-top{color:rgba(255,255,255,.85)}
+[data-theme="dark"] .stat-tile .t-big,[data-theme="dark"] .mini .m-big{color:#fff}
+[data-theme="dark"] .stat-tile .t-big small,[data-theme="dark"] .mini .m-big small,[data-theme="dark"] .stat-tile .t-top{color:rgba(255,255,255,.75)}
+[data-theme="dark"] .stat-tile .t-ico,[data-theme="dark"] .mini .m-ico{background:rgba(255,255,255,.18);color:#fff}
+[data-theme="dark"] #mini-steps{background:linear-gradient(135deg,#2f6bff,#0e2a66)}
+[data-theme="dark"] #mini-water{background:linear-gradient(135deg,#25c7b7,#0a4d47)}
+[data-theme="dark"] #st-exercise{background:linear-gradient(135deg,#3ddc84,#0c5c34)}
+[data-theme="dark"] #st-bpm{background:linear-gradient(135deg,#ff5a4d,#7c1f12)}
+[data-theme="dark"] #st-weight{background:linear-gradient(135deg,#6b7bff,#26266b)}
+[data-theme="dark"] #st-water{background:linear-gradient(135deg,#25c7b7,#0a4d47)}
+[data-theme="dark"] .streak-card{background:linear-gradient(135deg,#b8f04a,#4d7c0f);border-color:transparent}
+[data-theme="dark"] .streak-card span{color:rgba(20,30,10,.75)}
+[data-theme="dark"] .streak-card b{color:#141414}
+[data-theme="dark"] .drop-row,[data-theme="dark"] .water-drops{color:#bff3ff}
+[data-theme="dark"] .drop-row i{color:#bff3ff}
+[data-theme="dark"] .water-drops i{color:#bff3ff}
+[data-theme="dark"] .spark i{background:rgba(255,255,255,.85)}
+[data-theme="dark"] .pulse polyline{stroke:#ffb3ab}
+/* infographic calorie ring */
+.cal-ring-wrap{display:flex;align-items:center;gap:18px;margin-bottom:6px}
+.cal-ring{position:relative;width:120px;height:120px;flex:none}
+.cal-ring svg{transform:rotate(-90deg)}
+.cal-ring .rv{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.cal-ring .rv b{font-size:24px;font-weight:800;letter-spacing:-.5px}
+.cal-ring .rv small{font-size:11px;color:var(--ink2);font-weight:600}
+.cal-legend{flex:1;display:flex;flex-direction:column;gap:8px}
+.cal-legend .cl-row{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--ink2)}
+.cal-legend .cl-dot{width:10px;height:10px;border-radius:50%;flex:none}
+.cal-legend .cl-row b{margin-left:auto;color:var(--ink);font-size:14px}
+/* macro segmented bar */
+.segbar{display:flex;height:12px;border-radius:99px;overflow:hidden;background:var(--track);margin:10px 0 6px}
+.segbar i{display:block;height:100%}
+.segbar .sp{background:linear-gradient(90deg,#ff9a62,#f2542d)}
+.segbar .sc{background:linear-gradient(90deg,#ffc53d,#f5a623)}
+.segbar .sf{background:linear-gradient(90deg,#b8f04a,#7fc400)}
+.seg-leg{display:flex;gap:14px;font-size:12px;font-weight:700;color:var(--ink2)}
+.seg-leg span{display:flex;align-items:center;gap:6px}
+.seg-leg .cl-dot{width:8px;height:8px;border-radius:50%}
+/* camera */
+.cam-preview{width:100%;aspect-ratio:4/3;border-radius:18px;background:var(--track);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:14px;color:var(--ink2)}
+.cam-preview img{width:100%;height:100%;object-fit:cover}
+.meal .m-thumbs img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+/* dark hero pop */
+[data-theme="dark"] .intake-card{background:linear-gradient(135deg,#8fd400,#23700f);border-color:transparent;color:#fff}
+[data-theme="dark"] .intake-card h2{color:#fff}
+[data-theme="dark"] .intake-card .intake-top,[data-theme="dark"] .intake-card .intake-sub{color:rgba(255,255,255,.85)}
+[data-theme="dark"] .intake-card .intake-top .zap{background:rgba(255,255,255,.2);color:#fff}
+[data-theme="dark"] .intake-card .kcal-bar{background:rgba(255,255,255,.25)}
+[data-theme="dark"] .intake-card .kcal-bar i{background:#fff}
+[data-theme="dark"] .intake-card .ring circle:first-child{stroke:rgba(255,255,255,.22)}
+[data-theme="dark"] .intake-card .ring circle:last-child{stroke:#fff}
+[data-theme="dark"] .intake-card .ring .rv b{color:#fff}
+[data-theme="dark"] .intake-card .ring .rv small{color:rgba(255,255,255,.8)}
