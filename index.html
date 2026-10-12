@@ -2,220 +2,50 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>F1T v12 · iPhone 18 Pro Max Lab</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="F1T">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./assets/icons/icon-192.png">
+<title>F1T · Track. Fuel. Transform.</title>
+<link rel="stylesheet" href="./css/tokens.css">
+<link rel="stylesheet" href="./css/base.css">
+<link rel="stylesheet" href="./css/components.css">
+<link rel="stylesheet" href="./css/screens.css">
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{background:radial-gradient(1200px 800px at 50% 20%,#1c1f26,#0a0b0e 70%);
-    min-height:100vh;display:flex;gap:36px;align-items:center;justify-content:center;
-    font-family:-apple-system,Inter,system-ui,sans-serif;color:#e8e8e8;padding:32px;flex-wrap:wrap}
-  .lab-title{position:fixed;top:18px;left:24px;font-size:13px;font-weight:700;letter-spacing:.4px;color:#9a9aa0;z-index:50}
-  .stage{transform-origin:top center;flex:none}
-  @media (max-width:920px){
-    body{flex-direction:column;gap:8px;padding:12px;padding-top:52px}
-    .panel{margin-top:0;width:100%;max-width:520px}
-    .lab-title{top:10px;left:14px}
-  }
-  .lab-title b{color:#aefe02}
-  .device{position:relative;width:478px;height:1004px;flex:none;
-    background:linear-gradient(145deg,#3a3d44,#151619 30%,#2c2e34 60%,#0e0f12);
-    border-radius:78px;padding:13px;
-    box-shadow:0 40px 100px rgba(0,0,0,.6),inset 0 1px 1px rgba(255,255,255,.35),inset 0 -1px 1px rgba(0,0,0,.6)}
-  .screen{position:relative;width:452px;height:978px;border-radius:65px;overflow:hidden;background:#000}
-  .screen iframe{width:440px;height:956px;border:0;display:block;margin:11px 6px;background:#000;border-radius:54px}
-  .island{position:absolute;top:23px;left:50%;transform:translateX(-50%);width:112px;height:32px;
-    background:#000;border-radius:20px;z-index:30;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
-  .island::after{content:"";position:absolute;right:14px;top:50%;transform:translateY(-50%);
-    width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#1e2a3a,#05070c 70%)}
-  .statusbar{position:absolute;top:11px;left:6px;width:440px;height:44px;z-index:20;pointer-events:none;
-    display:flex;align-items:center;justify-content:space-between;padding:8px 30px 0;color:#fff;
-    font-size:15px;font-weight:600}
-  .statusbar.light{color:#000}
-  .sb-icons{display:flex;align-items:center;gap:7px}
-  .homebar{position:absolute;bottom:19px;left:50%;transform:translateX(-50%);width:134px;height:5px;
-    border-radius:3px;background:rgba(255,255,255,.92);z-index:20;pointer-events:none}
-  .homebar.light{background:rgba(0,0,0,.85)}
-  .btn{position:absolute;background:linear-gradient(90deg,#43464d,#1a1b1f);border-radius:3px}
-  .btn.action{left:-3px;top:200px;width:4px;height:32px}
-  .btn.volup{left:-3px;top:250px;width:4px;height:58px}
-  .btn.voldn{left:-3px;top:316px;width:4px;height:58px}
-  .btn.power{right:-3px;top:270px;width:4px;height:92px}
-  .panel{width:340px;flex:none;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
-    border-radius:20px;padding:20px;backdrop-filter:blur(20px);align-self:flex-start;margin-top:40px}
-  .panel h2{font-size:15px;margin-bottom:4px}
-  .panel p{font-size:12px;color:#9a9aa0;margin-bottom:14px;line-height:1.5}
-  .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-  .pbtn{background:rgba(174,254,2,.12);border:1px solid rgba(174,254,2,.4);color:#aefe02;
-    padding:9px 14px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer}
-  .pbtn:hover{background:rgba(174,254,2,.22)}
-  .pbtn.ghost{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.15);color:#e8e8e8}
-  .checklist{list-style:none;font-size:12.5px}
-  .checklist li{padding:7px 0;border-top:1px solid rgba(255,255,255,.07);color:#c9c9ce;line-height:1.45}
-  .checklist li b{color:#aefe02}
-  #errlog{background:#0a0a0c;border:1px solid rgba(255,80,80,.3);border-radius:12px;padding:10px;
-    font-family:monospace;font-size:11px;color:#ff8a8a;max-height:150px;overflow-y:auto;margin-top:10px;white-space:pre-wrap}
-  #errlog:empty{display:none}
-  .lock{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
-    background:radial-gradient(900px 600px at 50% 30%,#16181d,#07080a 70%)}
-  .lock.hidden{display:none}
-  .lock-card{text-align:center;padding:32px}
-  .lock-title{font-size:22px;font-weight:800;letter-spacing:-.3px}
-  .lock-title b{color:#aefe02}
-  .lock-sub{font-size:13px;color:#9a9aa0;margin:8px 0 22px}
-  .lock-dots{display:flex;gap:14px;justify-content:center;margin-bottom:26px}
-  .lock-dots i{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.3);transition:all .15s}
-  .lock-dots i.on{background:#aefe02;border-color:#aefe02;box-shadow:0 0 12px rgba(174,254,2,.6)}
-  .lock-dots.err i{border-color:#e5484d;animation:shake .3s}
-  @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-  .lock-pad{display:grid;grid-template-columns:repeat(3,84px);gap:12px;justify-content:center}
-  .lock-pad button{height:64px;border-radius:20px;font-size:22px;font-weight:700;color:#fff;cursor:pointer;
-    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14)}
-  .lock-pad button:active{transform:scale(.93);background:rgba(174,254,2,.2)}
-  .ok{color:#aefe02;font-size:12px;margin-top:8px}
+@font-face{font-family:"F1TBrand";src:url("./assets/fonts/f1t-brand.woff2") format("woff2");font-weight:400 900;font-display:swap}
 </style>
 </head>
 <body>
-<div class="lock" id="lock">
-  <div class="lock-card">
-    <div class="lock-title">F1T <b>v12 Device Lab</b></div>
-    <div class="lock-sub">Private build. Enter PIN to continue.</div>
-    <div class="lock-dots" id="lock-dots"><i></i><i></i><i></i><i></i></div>
-    <div class="lock-pad" id="lock-pad">
-      <button>1</button><button>2</button><button>3</button>
-      <button>4</button><button>5</button><button>6</button>
-      <button>7</button><button>8</button><button>9</button>
-      <button data-k="clear" style="font-size:14px">Clear</button><button>0</button><button data-k="back" style="font-size:18px">⌫</button>
-    </div>
-  </div>
+<div id="ambient"></div>
+<div id="app">
+  <main id="screen"></main>
+  <nav id="tabbar" aria-label="Main navigation"></nav>
 </div>
-<div class="lab-title">F1T v12 DEVICE LAB · <b>iPhone 18 Pro Max</b> · 440×956 pt · 3x</div>
-
-<div class="stage" id="stage"><div class="device" id="device">
-  <div class="btn action"></div><div class="btn volup"></div><div class="btn voldn"></div><div class="btn power"></div>
-  <div class="screen">
-    <iframe id="app" title="F1T v12"></iframe>
-    <div class="island"></div>
-    <div class="statusbar" id="statusbar">
-      <span id="clock">9:41</span>
-      <span class="sb-icons">
-        <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="4.5" width="3" height="7.5" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1" opacity=".4"/></svg>
-        <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor"><path d="M8.5 9.6a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2zM8.5 5.4c1.8 0 3.4.7 4.6 1.9l-1.5 1.5A4.4 4.4 0 0 0 8.5 7.6c-1.2 0-2.3.5-3.1 1.2L3.9 7.3a6.4 6.4 0 0 1 4.6-1.9zM8.5 1c2.9 0 5.6 1.2 7.6 3.1l-1.5 1.5A8.6 8.6 0 0 0 8.5 3.2c-2.4 0-4.5.9-6.1 2.4L.9 4.1A10.6 10.6 0 0 1 8.5 1z" transform="translate(0,-1)"/></svg>
-        <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x="0.5" y="0.5" width="21" height="12" rx="3.5" stroke="currentColor" opacity=".5"/><rect x="2.5" y="2.5" width="15" height="8" rx="2" fill="currentColor"/><path d="M24.5 4.5v4a2 2 0 0 0 0-4z" fill="currentColor" opacity=".5"/></svg>
-      </span>
-    </div>
-    <div class="homebar" id="homebar"></div>
-  </div>
-</div></div>
-
-<div class="panel">
-  <h2>Test Controls</h2>
-  <p>v12 lab: drives the v12 store keys (f1t_pref_*, f1t_profile, f1t_days_*). No premium in v12.</p>
-  <div class="row">
-    <button class="pbtn" id="b-reload">Reload app</button>
-    <button class="pbtn ghost" id="b-dark">Dark</button>
-    <button class="pbtn ghost" id="b-light">Light</button>
-  </div>
-  <div class="row">
-    <button class="pbtn ghost" id="b-guest">Seed guest + profile</button>
-    <button class="pbtn ghost" id="b-sample">Seed sample day</button>
-    <button class="pbtn ghost" id="b-wipe">Wipe app data</button>
-  </div>
-  <h2 style="margin-top:14px">Test Script</h2>
-  <ul class="checklist">
-    <li><b>1.</b> Boot: welcome → signup → onboarding → home, no console errors</li>
-    <li><b>2.</b> Home: Daily Score, calorie ring, macro bars, 7-day chart, calendar</li>
-    <li><b>3.</b> Tab bar: 5 slots, FAB opens Quick Add sheet with 5 real actions</li>
-    <li><b>4.</b> Coach: 3 free persona pills, plan card, chat + cancel + retry</li>
-    <li><b>5.</b> Workout: pick exercises, timer counts, 45s rest, finish saves</li>
-    <li><b>6.</b> Profile → Body map: 3D muscles load, tap selects, credit shows</li>
-    <li><b>7.</b> Profile → Weekly report opens printable infographic</li>
-    <li><b>8.</b> Settings: theme, language (5), export, terms, logout</li>
-    <li><b>9.</b> Light mode: readable, no washed text; Burmese: no overlap</li>
-  </ul>
-  <div id="errlog"></div>
-  <div class="ok" id="okmsg"></div>
-</div>
-
-<script>
-  const LAB_PIN = "7391";
-  const frame = document.getElementById('app');
-  (function(){
-    const lock=document.getElementById('lock'), dots=document.getElementById('lock-dots');
-    if(sessionStorage.getItem('f1t_lab_ok')==='1'){ lock.classList.add('hidden'); frame.src='../'; return; }
-    let pin='';
-    const paint=()=>{ [...dots.children].forEach((d,i)=>d.classList.toggle('on',i<pin.length)); };
-    document.getElementById('lock-pad').addEventListener('click',e=>{
-      const b=e.target.closest('button'); if(!b) return;
-      const k=b.dataset.k;
-      if(k==='clear'){ pin=''; }
-      else if(k==='back'){ pin=pin.slice(0,-1); }
-      else if(pin.length<4){ pin+=b.textContent.trim(); }
-      paint();
-      if(pin.length===4){
-        if(pin===LAB_PIN){ sessionStorage.setItem('f1t_lab_ok','1');
-          lock.classList.add('hidden'); frame.src='../'; }
-        else{ dots.classList.add('err'); setTimeout(()=>{ dots.classList.remove('err'); pin=''; paint(); },350); }
-      }
-    });
-  })();
-  const errlog = document.getElementById('errlog');
-  const okmsg = document.getElementById('okmsg');
-  function logErr(m){ errlog.textContent += m + "\n"; }
-  frame.addEventListener('load', () => {
-    try{
-      const w = frame.contentWindow;
-      w.onerror = (m,s,l,c)=>{ logErr("ERR: "+m+" @"+(s||"").split("/").pop()+":"+l); };
-      const ce = w.console.error.bind(w.console);
-      w.console.error = (...a)=>{ logErr("console.error: "+a.join(" ")); ce(...a); };
-      okmsg.textContent = "✓ lab hooked into app (errors will appear above)";
-    }catch(e){ logErr("hook failed: "+e.message); }
-  });
-  function fitStage(){
-    const st=document.getElementById('stage');
-    const s=Math.min(1,(window.innerWidth-20)/500);
-    st.style.transform='scale('+s+')';
-    st.style.height=(1004*s)+'px';
-    st.style.marginBottom=((1004*s)-1004)+'px';
-  }
-  window.addEventListener('resize',fitStage); fitStage();
-  function tick2(){ const d=new Date(); let h=d.getHours()%12; if(h===0)h=12;
-    document.getElementById('clock').textContent = h+":"+String(d.getMinutes()).padStart(2,"0"); }
-  setInterval(tick2, 5000); tick2();
-  setInterval(()=>{ try{
-      const th = frame.contentWindow.document.documentElement.dataset.theme;
-      const light = th === "light";
-      document.getElementById('statusbar').classList.toggle('light', light);
-      document.getElementById('homebar').classList.toggle('light', light);
-    }catch(e){} }, 1000);
-  document.getElementById('b-reload').onclick = ()=> frame.contentWindow.location.reload();
-  function setTheme(th){ try{
-      frame.contentWindow.localStorage.setItem('f1t_pref_theme', JSON.stringify(th));
-      frame.contentWindow.location.reload();
-    }catch(e){ logErr(e.message); } }
-  document.getElementById('b-dark').onclick = ()=> setTheme('dark');
-  document.getElementById('b-light').onclick = ()=> setTheme('light');
-  document.getElementById('b-guest').onclick = ()=>{ try{
-      const w = frame.contentWindow;
-      w.localStorage.setItem('f1t_guest', JSON.stringify(true));
-      w.localStorage.setItem('f1t_profile', JSON.stringify({name:'Lab',age:18,h:183,w:91,goal:'lose',policyAccepted:true}));
-      w.localStorage.setItem('f1t_pref_lang', JSON.stringify('en'));
-      w.location.reload();
-    }catch(e){ logErr(e.message); } };
-  document.getElementById('b-sample').onclick = ()=>{ try{
-      const w = frame.contentWindow;
-      const now = new Date(), dk = now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");
-      w.localStorage.setItem('f1t_guest', JSON.stringify(true));
-      w.localStorage.setItem('f1t_profile', JSON.stringify({name:'Lab',age:18,h:183,w:91,goal:'lose',policyAccepted:true}));
-      w.localStorage.setItem('f1t_days_'+dk, JSON.stringify({kcal:1850,p:120,c:200,f:60,water:2500,steps:8000,
-        meals:{breakfast:[{id:'mohinga',name:'Mohinga',kcal:350,p:14,c:58,f:6,qty:1}],
-               lunch:[{id:'rice1',name:'Steamed Rice',kcal:410,p:8,c:90,f:0,qty:2}]}}));
-      w.localStorage.setItem('f1t_workouts', JSON.stringify([{id:'wo1',ts:Date.now()-36e5,dur:2700,kcal:320,vol:8500,sets:12,exercises:[{id:'pushup',sets:[{kg:0,reps:15,done:true}]}]}]));
-      w.localStorage.setItem('f1t_weights', JSON.stringify([{d:dk,w:91}]));
-      w.location.reload();
-    }catch(e){ logErr(e.message); } };
-  document.getElementById('b-wipe').onclick = ()=>{ try{
-      frame.contentWindow.localStorage.clear(); frame.contentWindow.location.reload();
-    }catch(e){ logErr(e.message); } };
-</script>
+<div id="sheet-root"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="./js/i18n.js"></script>
+<script src="./js/i18n12.js"></script>
+<script src="./js/data.js"></script>
+<script src="./js/icons.js"></script>
+<script src="./js/store.js"></script>
+<script src="./js/firebase.js"></script>
+<script src="./js/ui.js"></script>
+<script src="./js/score.js"></script>
+<script src="./js/meals.js"></script>
+<script src="./js/health.js"></script>
+<script src="./js/stats.js"></script>
+<script src="./js/coach.js"></script>
+<script src="./js/workout.js"></script>
+<script src="./js/report.js"></script>
+<script src="./js/anatomy.js"></script>
+<script src="./js/auth.js"></script>
+<script src="./js/app.js"></script>
 </body>
 </html>
