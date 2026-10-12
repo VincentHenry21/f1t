@@ -9,7 +9,7 @@
   --r-lg:30px; --r-md:22px;
   --shadow:0 12px 40px rgba(90,60,30,.14), 0 2px 6px rgba(90,60,30,.08);
   --body-bg:linear-gradient(160deg,#ffedd1 0%,#fbf0dc 38%,#f0f7da 68%,#dff0bd 100%);
-  --font:"Inter","Noto Sans Myanmar",-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;
+  --font:"Space Grotesk","Noto Sans Myanmar",system-ui,-apple-system,sans-serif;
 }
 [data-theme="dark"]{
   --ink:#f4f4ee; --ink2:#a9a9a0; --bgc:#141511;
@@ -316,7 +316,7 @@ input,select{font-family:var(--font)}
 @keyframes sheetup{from{transform:translate(-50%,60px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
 .sheet-grip{width:44px;height:5px;border-radius:99px;background:var(--divider);margin:4px auto 14px}
 #sheet h2{font-size:20px;font-weight:800;margin-bottom:14px;text-align:center}
-.sheet-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+.sheet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px}
 .sheet-opt{padding:18px;border-radius:20px;background:var(--surface);border:1px solid var(--glass-brd);font-weight:700;font-size:14px;
   display:flex;flex-direction:column;align-items:center;gap:8px}
 .sheet-opt span{font-size:26px}
@@ -374,3 +374,17 @@ html[lang="my"] .badge b{line-height:1.7}
 .theme-top{display:flex;align-items:center;gap:14px}
 .theme-seg{width:100%;margin:0}
 .theme-seg button{padding:12px}
+/* ===== date picker / week picker / notifications ===== */
+.pk-head{display:flex;align-items:center;justify-content:space-between;margin:6px 0 12px}
+.pk-head b{font-size:17px;font-weight:700}
+.pk-head button{width:38px;height:38px;border-radius:50%;background:var(--surface);border:1px solid var(--glass-brd);font-size:20px;font-weight:700;color:var(--ink)}
+.pk-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:16px}
+.pk-dow{text-align:center;font-size:11px;font-weight:700;color:var(--ink2);padding:6px 0}
+.pk-empty{min-height:40px}
+.pk-day{min-height:40px;border-radius:13px;font-weight:600;font-size:14px;color:var(--ink);font-family:var(--font)}
+.pk-day.today{box-shadow:inset 0 0 0 1.5px var(--lime-d)}
+.pk-day.sel{background:var(--lime);color:#141414;font-weight:700}
+.wk-list{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+button.ds-day{font-family:var(--font);cursor:pointer}
+#home-body .mini,#stats-body .stat-tile{cursor:pointer}
+.nt-dot-off{display:none!important}
