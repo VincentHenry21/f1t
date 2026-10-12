@@ -1,0 +1,93 @@
+/* ============ F1T v12 · Design Tokens ============
+   Single source of truth for the entire visual system.
+   Black + athletic green. Strava energy, Apple Fitness clarity.
+   Changing a token here updates every component consistently. */
+
+:root{
+  /* ---- brand (never change the logo/font assets themselves) ---- */
+  --lime:#aefe02;            /* primary athletic accent */
+  --lime-deep:#7fc400;
+  --green:#16a34a;           /* supporting green */
+  --green-deep:#0d7a2c;
+  --red:#e5484d;             /* semantic only: errors, destructive */
+
+  /* ---- surfaces (dark default) ---- */
+  --bg:#0a0a0b;              /* primary background: deep black */
+  --bg-2:#101012;            /* secondary: charcoal */
+  --card:#141416;            /* elevated surface */
+  --card-2:#1a1a1e;
+  --surface:#1e1e22;         /* inputs, wells */
+  --line:rgba(255,255,255,.09);
+  --line-2:rgba(255,255,255,.14);
+
+  /* ---- text ---- */
+  --ink:#f5f5f4;             /* primary: clean white */
+  --ink-2:#a3a3ab;           /* secondary: muted gray */
+  --ink-3:#6b6b72;           /* tertiary */
+
+  /* ---- glass ---- */
+  --glass-bg:rgba(20,20,22,.62);
+  --glass-brd:rgba(255,255,255,.12);
+  --glass-hi:rgba(255,255,255,.08);  /* edge highlight */
+  --blur-sm:8px;
+  --blur-md:16px;
+  --blur-lg:28px;
+
+  /* ---- ambient ---- */
+  --ambient-1:rgba(174,254,2,.07);
+  --ambient-2:rgba(22,163,74,.06);
+
+  /* ---- type ---- */
+  --font-brand:"F1TBrand",-apple-system,system-ui,sans-serif;
+  --font-ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
+  --font-myo:"Noto Sans Myanmar",-apple-system,sans-serif;
+  --fs-xs:.72rem; --fs-sm:.83rem; --fs-md:1rem; --fs-lg:1.22rem;
+  --fs-xl:1.55rem; --fs-2xl:2rem; --fs-hero:2.6rem;
+  --lh-tight:1.15; --lh-body:1.5; --lh-myo:1.85;
+
+  /* ---- spacing ---- */
+  --sp-1:.25rem; --sp-2:.5rem; --sp-3:.75rem; --sp-4:1rem;
+  --sp-5:1.35rem; --sp-6:1.8rem; --sp-8:2.6rem;
+
+  /* ---- radii ---- */
+  --r-sm:.6rem; --r-md:1rem; --r-lg:1.4rem; --r-xl:1.9rem; --r-pill:99rem;
+
+  /* ---- shadows ---- */
+  --sh-1:0 .1rem .5rem rgba(0,0,0,.35);
+  --sh-2:0 .4rem 1.4rem rgba(0,0,0,.45);
+  --sh-glow:0 0 1.6rem rgba(174,254,2,.22);
+
+  /* ---- motion (state-driven only, never decorative) ---- */
+  --ease:cubic-bezier(.32,.72,.28,1);
+  --ease-spring:cubic-bezier(.34,1.4,.4,1);
+  --dur-1:.16s; --dur-2:.28s; --dur-3:.45s;
+
+  /* ---- layout ---- */
+  --tabbar-h:4.6rem;
+  --content-max:34rem;
+  --touch-min:2.75rem;       /* minimum touch target */
+}
+
+/* light theme: same tokens, lifted surfaces */
+[data-theme="light"]{
+  --bg:#f4f4f2; --bg-2:#ececea; --card:#ffffff; --card-2:#f6f6f4;
+  --surface:#ececea;
+  --line:rgba(0,0,0,.09); --line-2:rgba(0,0,0,.14);
+  --ink:#131315; --ink-2:#5c5c62; --ink-3:#9a9aa0;
+  --glass-bg:rgba(255,255,255,.66);
+  --glass-brd:rgba(0,0,0,.1);
+  --glass-hi:rgba(255,255,255,.5);
+  --ambient-1:rgba(127,196,0,.08);
+  --ambient-2:rgba(22,163,74,.07);
+  --sh-1:0 .1rem .5rem rgba(0,0,0,.08);
+  --sh-2:0 .4rem 1.4rem rgba(0,0,0,.12);
+}
+
+/* reduced motion + transparency: laws, not suggestions */
+@media (prefers-reduced-motion:reduce){
+  :root{ --dur-1:.01s; --dur-2:.01s; --dur-3:.01s; }
+  *{ animation-duration:.01s !important; transition-duration:.01s !important; }
+}
+@media (prefers-reduced-transparency:reduce){
+  :root{ --glass-bg:var(--card); --blur-sm:0px; --blur-md:0px; --blur-lg:0px; }
+}
