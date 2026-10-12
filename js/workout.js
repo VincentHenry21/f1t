@@ -241,30 +241,36 @@ function bodySVG(trained, side){
   }
   return `<svg viewBox="0 0 140 250" class="bodymap" aria-hidden="true">
   <defs>
+    <radialGradient id="bmbg" cx="50%" cy="32%" r="75%">
+      <stop offset="0" stop-color="#3d434c"/><stop offset=".62" stop-color="#2b3037"/><stop offset="1" stop-color="#1d2126"/>
+    </radialGradient>
     <linearGradient id="bmg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#5b626b"/><stop offset="1" stop-color="#474d55"/>
+      <stop offset="0" stop-color="#434a54"/><stop offset="1" stop-color="#2f353d"/>
     </linearGradient>
-    <linearGradient id="bmgon" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#cdfa6d"/><stop offset="1" stop-color="#8fd600"/>
-    </linearGradient>
+    <radialGradient id="bmgon" cx="50%" cy="38%" r="72%">
+      <stop offset="0" stop-color="#e2ff9e"/><stop offset=".55" stop-color="#b8f53c"/><stop offset="1" stop-color="#86cf00"/>
+    </radialGradient>
+    <radialGradient id="bmbgL" cx="50%" cy="32%" r="75%">
+      <stop offset="0" stop-color="#f2f4f6"/><stop offset=".62" stop-color="#dde2e8"/><stop offset="1" stop-color="#c3cad2"/>
+    </radialGradient>
     <linearGradient id="bmgL" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#c9cfd6"/><stop offset="1" stop-color="#aeb6bf"/>
+      <stop offset="0" stop-color="#ccd2d9"/><stop offset="1" stop-color="#b3bac3"/>
     </linearGradient>
-    <linearGradient id="bmgonL" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#bdf25c"/><stop offset="1" stop-color="#7fc400"/>
-    </linearGradient>
+    <radialGradient id="bmgonL" cx="50%" cy="38%" r="72%">
+      <stop offset="0" stop-color="#d2fa85"/><stop offset=".55" stop-color="#a4e834"/><stop offset="1" stop-color="#79b800"/>
+    </radialGradient>
   </defs>
   <style>
-    .bodymap .bz{fill:#3d4249}
-    .bodymap .mp{fill:url(#bmg);stroke:rgba(0,0,0,.35);stroke-width:.8}
-    .bodymap .fib{fill:none;stroke:rgba(0,0,0,.3);stroke-width:.9;stroke-linecap:round}
+    .bodymap .bz{fill:url(#bmbg)}
+    .bodymap .mp{fill:url(#bmg);stroke:rgba(0,0,0,.4);stroke-width:.9}
+    .bodymap .fib{fill:none;stroke:rgba(0,0,0,.34);stroke-width:.9;stroke-linecap:round}
     .bodymap .mp{transition:fill .3s,filter .3s}
-    .bodymap .mz.on .mp{fill:url(#bmgon);filter:drop-shadow(0 0 4px rgba(174,254,2,.6))}
-    .bodymap .mz.on .fib{stroke:rgba(0,0,0,.45)}
-    [data-theme="light"] .bodymap .bz{fill:#d3d8de}
-    [data-theme="light"] .bodymap .mp{fill:url(#bmgL);stroke:rgba(0,0,0,.16)}
-    [data-theme="light"] .bodymap .fib{stroke:rgba(0,0,0,.2)}
-    [data-theme="light"] .bodymap .mz.on .mp{fill:url(#bmgonL);filter:drop-shadow(0 0 4px rgba(127,196,0,.55))}
+    .bodymap .mz.on .mp{fill:url(#bmgon);filter:drop-shadow(0 0 7px rgba(174,254,2,.75))}
+    .bodymap .mz.on .fib{stroke:rgba(10,20,0,.5)}
+    [data-theme="light"] .bodymap .bz{fill:url(#bmbgL)}
+    [data-theme="light"] .bodymap .mp{fill:url(#bmgL);stroke:rgba(30,40,50,.22)}
+    [data-theme="light"] .bodymap .fib{stroke:rgba(30,40,50,.24)}
+    [data-theme="light"] .bodymap .mz.on .mp{fill:url(#bmgonL);filter:drop-shadow(0 0 7px rgba(127,196,0,.6))}
   </style>
   ${base}
   <g id="bm${uid}L">${left}</g>
