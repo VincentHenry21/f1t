@@ -504,7 +504,7 @@ button.ds-day{font-family:var(--font);cursor:pointer}
   border-radius:99px;padding:9px 16px;font-size:15px;color:var(--ink)}
 .streak-pill b{font-family:var(--font-d);font-size:17px;letter-spacing:.5px}
 .streak-pill svg{color:#ff6b62}
-.score-hero{text-align:center;padding:26px 0 18px}
+.score-hero{text-align:center;padding:26px 0 18px;margin-bottom:16px}
 .score-num{font-family:var(--font-d);font-size:76px;font-weight:600;color:var(--lime);letter-spacing:1px;line-height:1}
 .score-label{font-size:17px;font-weight:600;color:var(--ink);margin-top:6px}
 .rings-card{display:flex;justify-content:space-around;padding:20px 12px;margin-bottom:14px}
