@@ -41,6 +41,7 @@ function show(view){
   vv._enterT=setTimeout(()=>vv.classList.remove("enter"),700);
   $("#tabbar").classList.toggle("hidden", !["home","coach","stats","rewards","profile","settings"].includes(view));
   $$("#tabbar .tab[data-goto]").forEach(b=>b.classList.toggle("on", b.dataset.goto===view));
+  moveBubble();
   window.scrollTo(0,0);
   if(view==="home") renderHome();
   if(view==="coach") renderCoach();
@@ -146,6 +147,7 @@ async function doAuth(){
 async function afterLogin(u){
   S.user=u; S.guest=false; store.del("f1t_guest");
   await loadAll();
+  try{ await window.F1TFB.pushLocalToCloud(); }catch(e){}
   enter();
 }
 async function enter(){
@@ -400,8 +402,29 @@ function renderHome(){
     const pts=wvals.map((v,i)=>`${(i/(wvals.length-1)*100).toFixed(1)},${(34-(v-mn)/rg*28).toFixed(1)}`).join(" ");
     spark=`<svg class="w-spark" viewBox="0 0 100 38" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="#aefe02" stroke-width="2.5" stroke-linecap="round"/></svg>`;
   }
+  /* score ring dial */
+  const SR_C=2*Math.PI*88;
+  const prevScore=(S._lastScore==null?0:S._lastScore); S._lastScore=score;
+  const srOff0=(SR_C*(1-Math.min(1,Math.max(0,prevScore))/10)).toFixed(1);
+  const srOff1=(SR_C*(1-Math.min(1,Math.max(0,score))/10)).toFixed(1);
+  let srTicks="";
+  for(let i=0;i<12;i++){ const a=i*Math.PI/6-Math.PI/2;
+    srTicks+=`<line x1="${(110+100*Math.cos(a)).toFixed(1)}" y1="${(110+100*Math.sin(a)).toFixed(1)}" x2="${(110+107*Math.cos(a)).toFixed(1)}" y2="${(110+107*Math.sin(a)).toFixed(1)}" class="sr-tick"/>`; }
   $("#home-body").innerHTML=`
-    <div class="score-hero depth-3d tilt"><div class="score-num">${score.toFixed(1)}</div><div class="score-label">${t("dailyScore")}</div></div>
+    <div class="score-dial">
+      <div class="sr-glow"></div>
+      <svg viewBox="0 0 220 220" class="score-svg" aria-hidden="true">
+        <defs><linearGradient id="srg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#dcff70"/><stop offset="1" stop-color="#7fc400"/>
+        </linearGradient></defs>
+        <g>${srTicks}</g>
+        <circle cx="110" cy="110" r="88" class="sr-track"/>
+        <circle cx="110" cy="110" r="88" class="sr-fill" id="score-arc"
+          stroke-dasharray="${SR_C.toFixed(1)}" stroke-dashoffset="${srOff0}"
+          data-off="${srOff1}" transform="rotate(-90 110 110)"/>
+      </svg>
+      <div class="sr-center"><div class="score-num" id="score-num">${prevScore.toFixed(1)}</div><div class="score-label">${t("dailyScore")}</div></div>
+    </div>
     <div id="env-mount"></div>
     <div class="glass-card rings-card">${rings.map(r=>`
       <div class="mring"><div class="mring-top">${ringSVG(r.pct,r.color)}<b>${Math.round(Math.min(1,Math.max(0,r.pct))*100)}%</b></div>
@@ -429,6 +452,11 @@ function renderHome(){
   $$("#coach-notifs [data-ai]").forEach(b=>b.onclick=()=>{ const n=notifs[+b.dataset.ni]; if(n) coachAsk(n.actions[+b.dataset.ai].prompt); });
   const cc=$("#coach-card"); if(cc) cc.onclick=openCoachPlan;
   const wl=$("#w-log"); if(wl) wl.onclick=openWeight;
+  /* score dial animation: arc sweeps + number counts from previous value */
+  const arc=$("#score-arc");
+  if(arc) requestAnimationFrame(()=>requestAnimationFrame(()=>{ arc.style.strokeDashoffset=arc.dataset.off; }));
+  const sn=$("#score-num");
+  if(sn) countUp(sn, score, 1000, v=>v.toFixed(1), prevScore);
   refreshBell();
   renderEnv();
 }
@@ -493,26 +521,46 @@ function chatHTML(){
 }
 function renderCoach(){
   chatLoad();
+  const chatting=CHAT.length>1;
+  const chips=[["chipWorkout","chipWorkoutP"],["chipMeals","chipMealsP"],["chipForm","chipFormP"],["chipEnergy","chipEnergyP"]];
+  const waves=Array.from({length:28},(_,i)=>`<i style="animation-delay:${(i*0.07).toFixed(2)}s"></i>`).join("");
   $("#coach-body").innerHTML=`
-    <div class="chat-log" id="chat-log">${chatHTML()||""}</div>
-    <div class="chat-suggest">
-      <button data-q="ntPlanDinnerP">${t("ntPlanDinner")}</button>
-      <button data-q="ntQuickWorkoutP">${t("ntQuickWorkout")}</button>
-      <button data-q="ntProteinIdeasP">${t("ntProteinIdeas")}</button>
+  <div class="coach-wrap${chatting?" chatting":""}">
+    <div class="coach-top"><div class="coach-pill"><span class="cp-orb"></span>
+      <span class="cp-tx"><b>F1T ${t("coach")}</b><small>${t("coachAiTag")}</small></span></div></div>
+    <div class="coach-orbzone">
+      <div class="coach-orb" id="coach-orb"><div class="orb-glow"></div><div class="orb-core"></div><div class="orb-sheen"></div></div>
+      <div class="coach-hi">${t("coachHi")}</div>
+      <div class="coach-ask">${t("coachHelp")}</div>
     </div>
-    <div class="chat-input"><input id="chat-in" placeholder="${t("askCoach")}" autocomplete="off">
-      <button id="chat-send" aria-label="send">${ic("send",18)}</button></div>`;
+    <div class="chat-log" id="chat-log">${chatHTML()||""}</div>
+    <div class="chat-chips">${chips.map(c=>`<button data-cp="${c[1]}">${ic("zap",13)}${t(c[0])}</button>`).join("")}</div>
+    <div class="coach-bar">
+      <button class="cb-mic" id="c-mic" aria-label="voice">${ic("mic",20)}</button>
+      <input id="chat-in" placeholder="${t("askCoach")}" autocomplete="off">
+      <button class="cb-send" id="chat-send" aria-label="send">${ic("send",18)}</button>
+    </div>
+  </div>
+  <div class="voice-ov hidden" id="voice-ov">
+    <div class="vo-orb"><div class="orb-core"></div></div>
+    <div class="vo-waves">${waves}</div>
+    <div class="vo-time" id="vo-time">00:00</div>
+    <div class="vo-label">${t("voiceListening")}</div>
+    <button class="vo-close" id="vo-close" aria-label="close">×</button>
+  </div>`;
   const log=$("#chat-log");
   if(!CHAT.length){ CHAT.push({r:"bot",x:t("coachWelcome")}); chatSave(); log.innerHTML=chatHTML(); }
   log.scrollTop=log.scrollHeight;
   const send=()=>{ const inp=$("#chat-in"), v=inp.value.trim(); if(!v) return; inp.value=""; askCoach(v); };
   $("#chat-send").onclick=send;
   $("#chat-in").onkeydown=e=>{ if(e.key==="Enter") send(); };
-  $$("#coach-body [data-q]").forEach(b=>b.onclick=()=>askCoach(t(b.dataset.q)));
+  $("#c-mic").onclick=openVoice;
+  $$("#coach-body [data-cp]").forEach(b=>b.onclick=()=>askCoach(t(b.dataset.cp)));
 }
 function coachAsk(prompt){ show("coach"); setTimeout(()=>askCoach(prompt),350); }
 async function askCoach(text){
   const log=$("#chat-log"); if(!log) return;
+  const orb=$("#coach-orb"); if(orb) orb.classList.add("thinking");
   CHAT.push({r:"user",x:text}); chatSave(); log.innerHTML=chatHTML();
   const th=document.createElement("div"); th.className="msg bot";
   th.innerHTML=`<span class="m-ico">${ic("zap",14)}</span><div class="bubble"><i>${t("coachThinking")}</i></div>`;
@@ -522,6 +570,35 @@ async function askCoach(text){
     CHAT.push({r:"bot",x:reply});
   }catch(e){ CHAT.push({r:"bot",x:t("coachOffline")}); }
   chatSave(); log.innerHTML=chatHTML(); log.scrollTop=log.scrollHeight;
+  if(orb) orb.classList.remove("thinking");
+}
+/* ---------- voice input ---------- */
+let voTimer=null, voRec=null;
+function openVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ toast(t("voiceNoSupport")); return; }
+  const ov=$("#voice-ov"); if(!ov) return;
+  ov.classList.remove("hidden");
+  const tt=$("#vo-time"); let s=0; tt.textContent="00:00";
+  clearInterval(voTimer);
+  voTimer=setInterval(()=>{ s++;
+    tt.textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); },1000);
+  const close=()=>{ ov.classList.add("hidden"); clearInterval(voTimer);
+    try{ if(voRec) voRec.stop(); }catch(e){} voRec=null; };
+  $("#vo-close").onclick=close;
+  try{
+    voRec=new SR();
+    voRec.lang=(S.lang==="my")?"my-MM":"en-US";
+    voRec.interimResults=false; voRec.maxAlternatives=1;
+    voRec.onresult=e=>{
+      const txt=e.results[0][0].transcript||"";
+      close();
+      if(txt.trim()) askCoach(txt.trim());
+    };
+    voRec.onerror=()=>close();
+    voRec.onend=()=>close();
+    voRec.start();
+  }catch(e){ close(); }
 }
 function coachSystem(){
   const p=S.profile||{}, d=S.day||{};
@@ -724,6 +801,7 @@ function renderSettings(){
         <span class="pill ${permState()[k]?"good":""}">${permState()[k]?t("allowed"):t("notAllowed")}</span></button>`).join("")}
       <button class="menu-row" id="m-export"><span class="mr-ico">${ic("calendar",20)}</span><span class="mr-t">${t("exportCal")}</span><span class="chev">›</span></button>
       <button class="menu-row" id="m-terms"><span class="mr-ico">${ic("doc",20)}</span><span class="mr-t">${t("rulesTitle")}</span><span class="chev">›</span></button>
+      <button class="menu-row" id="m-guide"><span class="mr-ico">${ic("book",20)}</span><span class="mr-t">${t("guideTitle")}</span><span class="chev">›</span></button>
     </div>
     <div class="menu-list">
       <button class="glass-card menu-row" id="m-install"><span class="mr-ico">${ic("smartphone",20)}</span><span class="mr-t">${t("installApp")}</span><span class="chev">›</span></button>
@@ -733,6 +811,7 @@ function renderSettings(){
     <div class="empty-note profile-copy">${t("copyright")}</div>`;
   $("#m-lang").onclick=openLangSheet;
   $("#m-terms").onclick=openRules;
+  $("#m-guide").onclick=openGuide;
   $("#m-export").onclick=exportICS;
   $$("#settings-body .perm-row").forEach(b=>b.onclick=()=>requestPerm(b.dataset.perm));
   $("#m-theme").onclick=e=>{ const b=e.target.closest("[data-th]"); if(!b) return;
@@ -846,6 +925,15 @@ function openRules(){
     <button class="btn-lime" id="m-ok">${t("done")}</button></div></div>`;
   $("#m-ok").onclick=closeModal; $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
+function openGuide(){
+  const secs=[1,2,3,4,5,6,7].map(i=>`
+    <div class="rr-sec"><b>${t("gd"+i+"t")}</b><p>${t("gd"+i+"b")}</p></div>`).join("");
+  $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal modal-tall"><div class="sheet-grip"></div>
+    <h2>${ic("book",22)} ${t("guideTitle")}</h2>
+    <div class="rr-body">${secs}</div>
+    <button class="btn-lime" id="m-ok">${t("done")}</button></div></div>`;
+  $("#m-ok").onclick=closeModal; $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
+}
 function openGoals(){
   const p=S.profile||{};
   $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
@@ -858,7 +946,12 @@ function openGoals(){
     await window.F1TFB.saveProfile(S.profile); closeModal(); toast(t("targetUpdated")); renderProfile(); };
   $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
-function closeModal(){ $("#modal-root").innerHTML=""; }
+function closeModal(){
+  const root=$("#modal-root"), m=root.querySelector(".modal"), b=root.querySelector(".mback");
+  if(!m){ root.innerHTML=""; return; }
+  m.classList.add("m-out"); if(b) b.classList.add("mback-out");
+  setTimeout(()=>{ root.innerHTML=""; },190);
+}
 
 const BMI_CATKEY={underweight:"bmiUnder",healthy:"bmiHealthy",overweight:"bmiOver",obese:"bmiObese"};
 function zodiacSign(mo,da){
@@ -936,7 +1029,12 @@ function openSheet(){
     if(k==="camera") openCamera();
   });
 }
-function closeSheet(){ $("#sheet").classList.add("hidden"); $("#sheet-backdrop").classList.add("hidden"); }
+function closeSheet(){
+  const sh=$("#sheet"), bd=$("#sheet-backdrop");
+  sh.classList.add("sh-out"); bd.classList.add("mback-out");
+  setTimeout(()=>{ sh.classList.add("hidden"); bd.classList.add("hidden");
+    sh.classList.remove("sh-out"); bd.classList.remove("mback-out"); },190);
+}
 
 function openMealPicker(meal){
   const foodName=f=> S.lang==="my"? f.my : f.en;
@@ -969,16 +1067,33 @@ function addFood(meal,f){
   saveDay(); closeModal(); successPop(); toast(t("logged")); renderHome();
 }
 function openWater(){
-  let cups=Math.floor(S.day.water/250);
+  const MAX=4000, STEP=250;
+  let ml=Math.round((S.day.water||0)/STEP)*STEP;
+  const ticks=[0,1000,2000,3000,4000].map(v=>`<span>${v>=1000?(v/1000)+"k":v}</span>`).join("");
   $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal"><div class="sheet-grip"></div>
-    <h2>${ic("droplet",22)} ${t("logWater")}</h2>
-    <div class="gslider-val"><b id="w-n">${cups}</b> <small>${t("cups")}</small></div>
-    <div class="gslider-row" id="w-slider"></div>
-    <p class="gslider-cap">${t("oneCup")}</p>
+    <h2 class="rch-title">${t("drinkWater")}.</h2>
+    <div class="rch-val"><b id="w-n">${ml}</b><small>ml</small></div>
+    <div class="rch-track" id="rch-track">
+      <div class="rch-ticks">${ticks}</div>
+      <div class="rch-fill" id="rch-fill"></div>
+    </div>
+    <p class="gslider-cap">1 ${t("cups").replace(/s$/,"")} = 250 ml</p>
     <button class="btn-lime" id="w-save">${t("save")}</button></div></div>`;
-  initGlassSlider($("#w-slider"),{min:0,max:20,step:1,value:cups,label:t("logWater"),
-    display:v=>{ cups=v; $("#w-n").textContent=v; }});
-  $("#w-save").onclick=()=>{ S.day.water=cups*250; saveDay(); closeModal(); successPop(); toast(t("logged")); renderHome(); };
+  const track=$("#rch-track"), fill=$("#rch-fill"), num=$("#w-n");
+  const paint=()=>{ fill.style.width=(ml/MAX*100)+"%"; num.textContent=ml; };
+  const setFromEvent=e=>{
+    const r=track.getBoundingClientRect();
+    const x=(e.touches&&e.touches[0]?e.touches[0].clientX:e.clientX)-r.left;
+    ml=Math.min(MAX,Math.max(0,Math.round(x/r.width*MAX/STEP)*STEP));
+    paint();
+  };
+  let drag=false;
+  track.addEventListener("pointerdown",e=>{ drag=true; track.setPointerCapture(e.pointerId); setFromEvent(e); });
+  track.addEventListener("pointermove",e=>{ if(drag) setFromEvent(e); });
+  track.addEventListener("pointerup",()=>{ drag=false; });
+  track.addEventListener("pointercancel",()=>{ drag=false; });
+  requestAnimationFrame(()=>requestAnimationFrame(paint));
+  $("#w-save").onclick=()=>{ S.day.water=ml; saveDay(); closeModal(); successPop(); toast(t("logged")); renderHome(); };
   $("#mback").onclick=e=>{ if(e.target.id==="mback") closeModal(); };
 }
 function openWeight(){
@@ -1133,7 +1248,12 @@ async function boot(){
     window.F1TFB.onAuth(async u=>{
       if(landed) return; landed=true;
       S.user=u||null;
-      if(u || S.guest){ await loadAll(); enter(); }
+      if(u || S.guest){
+        if(u){ S.guest=false; try{ store.del("f1t_guest"); }catch(e){} }
+        await loadAll();
+        if(u){ try{ await window.F1TFB.pushLocalToCloud(); }catch(e){} }
+        enter();
+      }
       else { show("auth"); if(redirErr) authErr(googleErrMsg(redirErr)); }
     });
     // fallback if firebase unavailable
@@ -1187,8 +1307,8 @@ function openMusclePicker(){
   $("#modal-root").innerHTML=`<div class="mback" id="mback"><div class="modal modal-tall"><div class="sheet-grip"></div>
     <h2>${t("targetMuscle")}</h2><p class="wo-sub">${t("selectMuscles")}</p>
     <div class="seg-sm wo-seg"><button data-s="front" class="on">${t("frontSide")}</button><button data-s="back">${t("backSide")}</button></div>
-    <div class="wo-picker"><div id="wo-mpills" class="wo-pills"></div>
-      <div id="wo-bodymap" class="wo-map"></div></div>
+    <div class="wo-picker"><div id="wo-bodymap" class="wo-map"></div>
+      <div id="wo-mpills" class="wo-pills"></div></div>
     <button class="btn-lime" id="wo-done" style="display:none">${t("finished")}</button></div></div>`;
   draw();
   $$(".wo-seg button").forEach(b=>b.onclick=()=>{ side=b.dataset.s;
@@ -1436,8 +1556,23 @@ function initGlassSlider(mount, opt){
 }
 
 /* 3D tilt on hero cards (fine pointers only; CSS gates it) */
-function initTilt(scope){
-  if(!window.matchMedia||!matchMedia("(hover:hover) and (pointer:fine)").matches) return;
+/* sliding bubble indicator for the tab bar: measures the active tab and springs to it */
+function moveBubble(){
+  const bar=$("#tabbar"), b=$("#tab-bubble");
+  const act=bar?bar.querySelector('.tab.on[data-goto]'):null;
+  if(!bar||!b||!act){ return; }
+  const place=()=>{
+    const br=bar.getBoundingClientRect(), r=act.getBoundingClientRect();
+    if(r.width===0) return;
+    b.style.left=Math.max(0,(r.left-br.left-6))+"px";
+    b.style.width=(r.width+12)+"px";
+  };
+  requestAnimationFrame(place);
+  /* re-measure after the label finishes expanding so the bubble lands exactly */
+  clearTimeout(b._t); b._t=setTimeout(place,420);
+}
+window.addEventListener("resize",()=>{ moveBubble(); });
+function initTilt(scope){  if(!window.matchMedia||!matchMedia("(hover:hover) and (pointer:fine)").matches) return;
   (scope||document).querySelectorAll(".tilt").forEach(card=>{
     if(card._tilt) return; card._tilt=true;
     card.addEventListener("pointermove",e=>{
@@ -1453,12 +1588,12 @@ function initTilt(scope){
 /* ================= v9 · Lift-style animations: expandable cards, count-up, success pop ================= */
 
 /* animated number count-up */
-function countUp(el, to, dur, format){
-  dur=dur||900; format=format||(v=>fmt(Math.round(v)));
+function countUp(el, to, dur, format, from){
+  dur=dur||900; format=format||(v=>fmt(Math.round(v))); from=(from==null?0:from);
   const t0=performance.now();
   function f(now){
     const p=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-p,3);
-    el.textContent=format(to*e);
+    el.textContent=format(from+(to-from)*e);
     if(p<1) requestAnimationFrame(f); else el.textContent=format(to);
   }
   requestAnimationFrame(f);
