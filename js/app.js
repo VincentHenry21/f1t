@@ -10,7 +10,8 @@ const store = {
   del(k){ try{ window.localStorage.removeItem(k); }catch(e){} }
 };
 const I = () => window.F1T_I18N[S.lang] || window.F1T_I18N.en;
-const t = k => (I()[k] !== undefined ? I()[k] : (window.F1T_I18N.en[k] || k));
+const t = (k,p) => { let s = (I()[k] !== undefined ? I()[k] : (window.F1T_I18N.en[k] || k));
+  if(p) for(const key in p) s = String(s).split("{"+key+"}").join(p[key]); return s; };
 const ic = (n,s) => window.f1tIcon(n, s || 20);
 
 const S = {
@@ -244,6 +245,8 @@ function renderHome(){
         <div class="water-drops">${drops}</div></div>
     </div>
     ${healthCard}
+    <div class="glass-card tip-card"><span class="tip-ico">${ic("zap",18)}</span>
+      <div><b>${t("tipTitle")}</b><p>${t("tip"+window.F1T_ANALYSIS.tipOfDay(S.dateKey))}</p></div></div>
     <div class="glass-card datestrip"><div class="ds-head"><b>${months[mon.getMonth()]} ${mon.getFullYear()}</b>
       <div class="ds-nav"><button id="ds-prev">‹</button><button id="ds-next">›</button></div></div>
       <div class="ds-row">${ds}</div></div>
@@ -257,6 +260,43 @@ function renderHome(){
 }
 
 /* ---------- STATS ---------- */
+/* ---------- HEALTH ANALYSIS ---------- */
+function renderAnalysis(){
+  const p=S.profile||{}, d=S.day||{};
+  const A=window.F1T_ANALYSIS, an=A.analyzeDay(d,p,t);
+  const bmi=A.bmi(p.h,p.w);
+  const catKey={underweight:"bmiUnder",healthy:"bmiHealthy",overweight:"bmiOver",obese:"bmiObese"};
+  const catTone={underweight:"warn",healthy:"good",overweight:"warn",obese:"bad"};
+  let bmiHtml="";
+  if(bmi){
+    const pos=Math.min(100,Math.max(0,(bmi.value-14)/(36-14)*100));
+    bmiHtml=`<div class="bmi-block">
+      <div class="bmi-top"><div><b>${bmi.value.toFixed(1)}</b><small>${t("bmi")}</small></div>
+        <span class="pill ${catTone[bmi.cat]}">${t(catKey[bmi.cat])}</span></div>
+      <div class="bmi-bar"><i style="left:${pos}%"></i></div>
+      <div class="bmi-range">${t("bmiRange")}: ${Math.round(bmi.lo)} - ${Math.round(bmi.hi)} ${t("kg")}</div>
+      <div class="bmi-note">${t("bmiNote")}</div></div>`;
+  }
+  const mRow=(label,m,icon)=>{ const pct=Math.min(100,Math.round(m.a/m.t*100));
+    const tone=pct<70?"warn":pct<=125?"good":"info";
+    return `<div class="macro-row"><span class="m-ico2">${ic(icon,16)}</span>
+      <div class="m-mid"><div class="m-lab"><b>${label}</b><span>${t("ofTarget",{a:m.a,b:m.t})}</span></div>
+      <div class="m-bar ${tone}"><i style="width:${pct}%"></i></div></div></div>`; };
+  const toneIcon={good:"check",warn:"bell",info:"zap",bad:"x"};
+  const cards=an.insights.map(n=>`<div class="glass-card insight ${n.tone}">
+    <span class="i-ico">${ic(n.icon,20)}</span>
+    <div><b>${n.title}</b><p>${n.body}</p></div></div>`).join("");
+  return `<div class="glass-card analysis-card">
+      <div class="a-head"><span class="a-ico">${ic("activity",18)}</span><b>${t("analysis")}</b></div>
+      ${bmiHtml}
+      <div class="macro-block">
+        ${mRow(t("protein"),an.macros.p,"meat")}
+        ${mRow(t("carbs"),an.macros.c,"bread")}
+        ${mRow(t("fat"),an.macros.f,"droplet")}
+      </div></div>
+    <div class="insights">${cards}</div>`;
+}
+
 function renderStats(){
   const p=S.profile||{}, target=p.targetKcal||2000;
   const keys=dayKeys(7); const dows=[t("mon"),t("tue"),t("wed"),t("thu"),t("fri"),t("sat"),t("sun")];
@@ -274,6 +314,7 @@ function renderStats(){
     <div class="glass-card stat-hero"><div class="s-label">${t("calories")}</div>
       <div class="s-nums"><b>${fmt(d.kcal)}</b><small>${t("kcal")}</small><span class="tgt">${t("target")}: ${fmt(target)} ${t("kcal")}</span></div>
       <div class="bars">${bars}</div></div>
+    ${renderAnalysis()}
     <div class="stat-grid">
       <div class="glass-card stat-tile"><div class="t-top"><span class="t-ico">${ic("activity",15)}</span>${t("exercise")}</div>
         <div class="spark">${spark.map(h=>`<i style="height:${h}px"></i>`).join("")}</div>
